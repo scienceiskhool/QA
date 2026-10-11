@@ -820,7 +820,7 @@ function readStudent() {
 }
 $("btn-start").addEventListener("click", function () { var s = readStudent(); if (s) { Sound.tone(1, "sine", .01, .0001); startGame(s); } });
 $("form-start").addEventListener("submit", function (e) { e.preventDefault(); });
-$("btn-quit").addEventListener("click", function () { endLoop(); closeModal(); Music.stop(); Confetti.stop(); show("scr-start"); paintStart(); });
+$("btn-quit").addEventListener("click", function () { endLoop(); closeModal(); userPaused = false; Music.stop(); Confetti.stop(); show("scr-start"); paintStart(); });
 
 /* =================== LEVELS =================== */
 function courseReagents() { return REAGENTS.filter(function (r) { return !r.pure || G.lv === "hard"; }); }
@@ -859,6 +859,7 @@ function startGame(student) {
   S = { student: student, lv: G.lv, levels: buildLevels(), level: 0, score: 0, lives: LIVES, secs: 0, guesses: [], tests: 0, won: false,
         stock: {}, fill: {}, items: { fire: 0, litmus: 0, Al: 0 } };
   courseReagents().forEach(function (r) { S.stock[r.k] = 0; S.fill[r.k] = 0; });
+  userPaused = false; modalOpen = false;
   show("scr-game"); buildBottles(); resize();
   startLevel();
   endLoop(); lastT = performance.now(); raf = requestAnimationFrame(frame);
@@ -866,6 +867,7 @@ function startGame(student) {
 function endLoop() { cancelAnimationFrame(raf); raf = 0; }
 function startLevel() {
   var lv = S.levels[S.level];
+  S.lives = LIVES;   // full lives at the start of every level
   L = { dots: [], ghosts: [], pac: null, fright: 0, plan: null, item: null, itemT: ITEM_EVERY * .6, pelletT: [], modeT: 0, scatter: true,
         state: "ready", readyT: 2.2, deathT: 0, notebook: {}, poofs: [], t: 0, bag: dotWeights(S.level) };
   fillDots(true);
@@ -888,7 +890,7 @@ function fillDots(withPellets) {
   }
 }
 function resetPositions() {
-  L.pac = { x: START.x, y: START.y, dir: null, want: null, face: 1, moving: false };
+  L.pac = { x: START.x, y: START.y, dir: DIRS.left, want: DIRS.left, face: -1, moving: false };   // starts moving left so he never sits stuck
   var rel = [0, 1.5, 5, 9];
   L.ghosts.forEach(function (g, i) {
     if (g.state === "dead") return;
@@ -1213,7 +1215,7 @@ function levelIntro() {
     '<div class="unknowns"><span>THE UNKNOWNS</span><b>' + UNKNOWN_TXT[lv.kind] + "</b></div>" +
     "<p>4 ghosts, each hiding a different " + (lv.kind === "a" ? "anion" : lv.kind === "c" ? "cation" : "ion") + ". Test them and name their ions to clear the level.</p>" +
     '<div class="obs"><div class="res" style="font-size:1rem">' + lv.tip + "</div></div>" +
-    (S.level === 0 ? legendHTML() : "") +
+    (S.level === 0 ? legendHTML() : '<p class="muted">Lives refilled: you have ' + LIVES + " again.</p>") +
     '<div class="mbtns"><button class="pbtn" type="button" data-act="go">START ▶</button></div>';
   openModal(function () { $("mbox").innerHTML = h; });
   $("mbox").onclick = function (e) { if (e.target.closest("button")) { closeModal(); L.state = "ready"; L.readyT = 1.6; } };
@@ -1249,7 +1251,10 @@ function gameOver() {
 
 /* =================== MODAL / PAUSE =================== */
 function openModal(render) { modalOpen = true; render(); $("modal").hidden = false; var f = $("mbox").querySelector("button:not(:disabled)"); if (f && !isTouch) f.focus({ preventScroll: true }); }
-function closeModal() { modalOpen = false; $("modal").hidden = true; $("mbox").onclick = null; }
+function closeModal() {
+  modalOpen = false; $("modal").hidden = true; $("mbox").onclick = null;
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();   // keys go back to the game
+}
 function setPause(on) {
   if (!S || $("scr-game").hidden) return;
   if (on && modalOpen) return;
