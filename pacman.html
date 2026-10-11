@@ -222,6 +222,9 @@ body.touch .dpad { display: grid; }
 .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: .88rem; }
 .legend span { display: flex; align-items: center; gap: 8px; }
 .legend i { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.unknowns { display: flex; flex-direction: column; gap: 4px; background: var(--neon-yellow); color: var(--night); border-radius: 8px; padding: 10px 12px; border: 3px solid var(--night); box-shadow: 0 0 0 2px var(--neon-yellow); }
+.unknowns span { font-family: var(--pixel); font-size: .55rem; letter-spacing: .06em; }
+.unknowns b { font-size: 1.25rem; font-weight: 800; line-height: 1.2; }
 .keytest { background: rgba(124,255,107,.08); border: 2px solid var(--neon-green); border-radius: 8px; padding: 10px 12px; font-size: .92rem; }
 
 /* ---------- results ---------- */
@@ -273,7 +276,8 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 </head>
 <body>
 
-<audio id="music" loop preload="none" src="Quiz%20Rush%203.mp3"></audio>
+<audio id="music" loop preload="auto" src="Quiz%20Rush%203.mp3"></audio>
+<audio id="music2" loop preload="auto" src="Quiz%20Rush%202.mp3"></audio>
 
 <header class="topbar">
   <a class="brand" href="https://scienceiskhool.github.io/scienceiskhool/" target="_blank" rel="noopener">
@@ -412,7 +416,8 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 /* =================== SETTINGS (safe to edit) =================== */
 var SUBMIT_URL = "https://script.google.com/macros/s/AKfycbxCTjRCQzLlWXmmY-5R0p75WCmeFLzC9ZM3gNbGRXpcc_d9qHMXdyCn12B4dHpnrBWe/exec";
 var SHEET_TAB = "QA Pac-Man";        // tab name in your Google Sheet
-var MUSIC_VOLUME = 0.25;             // game music volume, 0 to 1 (file: Quiz Rush 3.mp3 in the same folder)
+var MUSIC_VOLUME = 0.25;             // music volume, 0 to 1. Main track: Quiz Rush 3.mp3. Scared-ghost track: Quiz Rush 2.mp3
+var TURN_TOLERANCE = 0.45;           // how late (or early) a turn can be pressed, in tiles. Higher = more forgiving
 var LIVES = 3;
 var DOTS_PER_FILL = 6;               // coloured dots needed to fill one bottle (= one test)
 var MAX_STOCK = 3;                   // full bottles you can hold of each reagent
@@ -756,12 +761,25 @@ var Sound = {
   win: function () { [523, 659, 784, 1047, 784, 1047].forEach(function (n, i) { Sound.tone(n, "square", .14, .06, i * .12); }); },
   lose: function () { [392, 330, 262, 196].forEach(function (n, i) { Sound.tone(n, "square", .22, .06, i * .2); }); }
 };
+// Two tracks: main (Quiz Rush 3) and scared (Quiz Rush 2, while ghosts are vulnerable).
 var Music = {
-  el: $("music"), on: load("music", true), vol: MUSIC_VOLUME,
+  main: $("music"), scared: $("music2"), on: load("music", true), vol: MUSIC_VOLUME, track: "main",
   inGame: function () { return !$("scr-game").hidden; },
-  play: function () { if (!this.on) return; try { this.el.volume = this.vol; var p = this.el.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} },
-  pause: function () { try { this.el.pause(); } catch (e) {} },
-  stop: function () { try { this.el.pause(); this.el.currentTime = 0; } catch (e) {} }
+  cur: function () { return this.track === "scared" ? this.scared : this.main; },
+  _play: function (el) { if (!this.on) return; try { el.volume = this.vol; var p = el.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} },
+  play: function () { this._play(this.cur()); },
+  pause: function () { try { this.main.pause(); this.scared.pause(); } catch (e) {} },
+  stop: function () { try { this.pause(); this.main.currentTime = 0; this.scared.currentTime = 0; } catch (e) {} this.track = "main"; },
+  restart: function () { this.stop(); this.play(); },   // new level: main track from the start
+  setTrack: function (t) {                               // called every frame; only acts on a change
+    if (t === this.track) return;
+    this.track = t;
+    try {
+      if (t === "scared") { this.main.pause(); this.scared.currentTime = 0; }
+      else { this.scared.pause(); }
+    } catch (e) {}
+    if (!userPaused) this.play();
+  }
 };
 function paintSound() {
   $("btn-sound").classList.toggle("off", !Sound.on); $("btn-sound").setAttribute("aria-label", Sound.on ? "Sound effects on" : "Sound effects off");
@@ -810,21 +828,25 @@ function courseIons(list) { return list.filter(function (k) { return !ION[k].pur
 function buildLevels() {
   var hard = G.lv === "hard";
   var all = courseIons(CATIONS).concat(ANIONS);
+  var coloured = ["Cu", "Fe2", "Fe3"];                                   // coloured ppts: easier cations
+  var harder = courseIons(["Zn", "Al", "NH4", "Ca", "Pb"]);             // white ppts / gas test
+  // kind: "c" = cations only, "a" = anions only, "m" = mix of cations and anions
   return [
-    { name: "CATIONS", ions: shuffle(["Cu", "Fe2", "Fe3", "Ca"]), pool: courseIons(CATIONS),
+    { name: "CATIONS", kind: "c", ions: shuffle(["Cu", "Fe2", "Fe3", "Ca"]), pool: courseIons(CATIONS),
       tip: "NaOH(aq) and NH<span class=\"sub\">3</span>(aq) tell most cations apart. Watch the colour of the ppt, and what happens in excess." },
-    { name: "CATIONS II", ions: shuffle(hard ? ["Zn", "Al", "Pb", "NH4"] : ["Zn", "Al", "NH4", "Ca"]), pool: courseIons(CATIONS),
-      tip: hard ? "Lots of white ppts! Compare excess NaOH(aq) with excess NH<span class=\"sub\">3</span>(aq). Two of these look identical with both: KI(aq) separates them."
-                : "Lots of white ppts! Compare excess NaOH(aq) with excess NH<span class=\"sub\">3</span>(aq). Some ions need warming and a gas test." },
-    { name: "ANIONS", ions: shuffle(ANIONS).slice(0, 4), pool: ANIONS.slice(),
+    { name: "ANIONS", kind: "a", ions: shuffle(ANIONS).slice(0, 4), pool: ANIONS.slice(),
       tip: "Anion tests are all about method: acidify before AgNO<span class=\"sub\">3</span> or Ba(NO<span class=\"sub\">3</span>)<span class=\"sub\">2</span>, and identify any gas." },
-    { name: "MIXED", ions: shuffle(all).slice(0, 4), pool: all,
-      tip: "Anything goes: each ghost could hide a cation or an anion." }
+    { name: "MIXED", kind: "m", ions: shuffle(shuffle(coloured).slice(0, 2).concat(shuffle(ANIONS).slice(0, 2))), pool: all,
+      tip: "First work out: is it a cation or an anion? The cations here all give coloured ppts." },
+    { name: "MIXED II", kind: "m", ions: shuffle(shuffle(harder).slice(0, 3).concat(shuffle(ANIONS).slice(0, 1))), pool: all,
+      tip: hard ? "Lots of white ppts! Compare excess NaOH(aq) with excess NH<span class=\"sub\">3</span>(aq). Some cations look identical with both: KI(aq) separates them."
+                : "Lots of white ppts! Compare excess NaOH(aq) with excess NH<span class=\"sub\">3</span>(aq). Some ions need warming and a gas test." }
   ];
 }
 function dotWeights(lvl) {
-  var w = lvl < 2 ? { NaOH: 3, NH3: 3, HNO3: 1, Ba: 1, AgNO3: 1, lime: 1, KI: 2 }
-        : lvl === 2 ? { NaOH: 2, NH3: 1, HNO3: 4, Ba: 2, AgNO3: 2, lime: 2, KI: 1 }
+  var kind = S.levels[lvl].kind;
+  var w = kind === "c" ? { NaOH: 3, NH3: 3, HNO3: 1, Ba: 1, AgNO3: 1, lime: 1, KI: 2 }
+        : kind === "a" ? { NaOH: 2, NH3: 1, HNO3: 4, Ba: 2, AgNO3: 2, lime: 2, KI: 1 }
         : { NaOH: 3, NH3: 2, HNO3: 3, Ba: 2, AgNO3: 2, lime: 2, KI: 1 };
   var bag = [];
   courseReagents().forEach(function (r) { for (var i = 0; i < w[r.k]; i++) bag.push(r.k); });
@@ -839,7 +861,6 @@ function startGame(student) {
   courseReagents().forEach(function (r) { S.stock[r.k] = 0; S.fill[r.k] = 0; });
   show("scr-game"); buildBottles(); resize();
   startLevel();
-  Music.stop(); Music.play();
   endLoop(); lastT = performance.now(); raf = requestAnimationFrame(frame);
 }
 function endLoop() { cancelAnimationFrame(raf); raf = 0; }
@@ -850,8 +871,9 @@ function startLevel() {
   fillDots(true);
   lv.ions.forEach(function (ion, i) { L.ghosts.push({ i: i, ion: ion, x: 0, y: 0, dir: null, state: "pen", fright: false, grace: 0, releaseT: 0, ruled: [] }); L.notebook[i] = []; });
   resetPositions();
-  $("g-level").textContent = "LEVEL " + (S.level + 1) + " · " + lv.name;
+  $("g-level").textContent = "LEVEL " + (S.level + 1) + " · " + UNKNOWN_TXT[lv.kind].replace("A mix of cations and anions", "Cations + anions").toUpperCase();
   paintHUD(); paintBottles(); paintItems(); paintNotebook();
+  Music.restart();
   levelIntro();
 }
 function fillDots(withPellets) {
@@ -888,6 +910,7 @@ function frame(t) {
 }
 function update(dt) {
   L.t += dt;
+  Music.setTrack(L.fright > 0 && L.state === "play" ? "scared" : "main");
   L.poofs = L.poofs.filter(function (p) { p.t += dt; return p.t < .6; });
   if (L.state === "ready") { L.readyT -= dt; if (L.readyT <= 0) { L.state = "play"; banner(""); } return; }
   if (L.state === "dying") { L.deathT -= dt; if (L.deathT <= 0) afterDeath(); return; }
@@ -932,6 +955,13 @@ function moveEntity(e, dist, decide) {
 function movePac(dt) {
   var p = L.pac;
   if (p.want && p.dir && p.want.dx === -p.dir.dx && p.want.dy === -p.dir.dy && (p.want.dx || p.want.dy)) p.dir = p.want; // reverse any time
+  // Forgiving turns: if a turn is pressed a little before or after a junction, snap to the junction and turn.
+  if (p.want && p.dir && (p.want.dx !== p.dir.dx || p.want.dy !== p.dir.dy)) {
+    var cx = Math.round(p.x), cy = Math.round(p.y), off = Math.abs(p.x - cx) + Math.abs(p.y - cy);
+    if (off > 0 && off <= TURN_TOLERANCE && pacOpen(cx + p.want.dx, cy + p.want.dy)) {
+      p.x = cx >= COLS ? cx - COLS : cx < 0 ? cx + COLS : cx; p.y = cy; p.dir = p.want;
+    }
+  }
   p.moving = false;
   var bx = p.x, by = p.y;
   moveEntity(p, SPEED.pac * (1 + .03 * S.level) * dt, function (e) {
@@ -1180,13 +1210,15 @@ function levelIntro() {
   var lv = S.levels[S.level];
   banner("READY!");
   var h = '<h2 id="m-title">LEVEL ' + (S.level + 1) + " · " + lv.name + "</h2>" +
-    "<p>4 ghosts, each hiding a different " + (S.level === 2 ? "anion" : S.level < 2 ? "cation" : "ion") + ". Test them and name their ions to clear the level.</p>" +
+    '<div class="unknowns"><span>THE UNKNOWNS</span><b>' + UNKNOWN_TXT[lv.kind] + "</b></div>" +
+    "<p>4 ghosts, each hiding a different " + (lv.kind === "a" ? "anion" : lv.kind === "c" ? "cation" : "ion") + ". Test them and name their ions to clear the level.</p>" +
     '<div class="obs"><div class="res" style="font-size:1rem">' + lv.tip + "</div></div>" +
     (S.level === 0 ? legendHTML() : "") +
     '<div class="mbtns"><button class="pbtn" type="button" data-act="go">START ▶</button></div>';
   openModal(function () { $("mbox").innerHTML = h; });
   $("mbox").onclick = function (e) { if (e.target.closest("button")) { closeModal(); L.state = "ready"; L.readyT = 1.6; } };
 }
+var UNKNOWN_TXT = { c: "Cations only", a: "Anions only", m: "A mix of cations and anions" };
 function legendHTML() {
   return '<div class="mlabel">DOT COLOURS</div><div class="legend">' + courseReagents().map(function (r) { return '<span><i style="background:' + r.col + '"></i><span>' + r.html + "</span></span>"; }).join("") +
     '<span><i style="background:#fff;box-shadow:0 0 6px #fff"></i>Power pellet</span></div>' +
