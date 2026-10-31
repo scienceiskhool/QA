@@ -1,0 +1,1293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gotta Test 'Em All!</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* Arcade Punch look (light, brand colours) throughout; battle screen styled like a retro handheld battle. */
+:root {
+  --orange: #FF8243; --pink: #FFC0CB; --yellow: #FCE883; --teal: #069494; --teal-ink: #057A7A;
+  --orange-tint: #FFE6DA; --pink-tint: #FFEEF1; --yellow-tint: #FEF8D9; --teal-tint: #DDF2F2;
+  --ink: #1F2A2E; --muted: #56656A; --line: #E4E8E9; --bg: #FFFFFF;
+  --good: #1E9E62; --good-tint: #D8F3E4; --bad: #E2463A;
+  --b: 3px solid var(--ink);
+  --font: "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pixel: "Press Start 2P", ui-monospace, "Courier New", monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); }
+body {
+  font: 16px/1.5 var(--font); min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.sub { font-size: .68em; position: relative; bottom: -.25em; line-height: 0; }
+sup { font-size: .68em; line-height: 0; position: relative; top: -.1em; vertical-align: super; font-weight: 800; }
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+.wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding: 16px; flex: 1; display: flex; flex-direction: column; }
+.card { background: #fff; border: var(--b); border-radius: 22px; box-shadow: 6px 6px 0 var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: var(--b); border-radius: 16px; padding: 14px 18px; font-weight: 800; font-size: 1.1rem; background: var(--orange); color: var(--ink); box-shadow: 0 5px 0 var(--ink); transition: transform .08s, box-shadow .08s; user-select: none; -webkit-user-select: none; }
+.btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.big { width: 100%; font-size: 1.1rem; text-transform: uppercase; letter-spacing: .03em; padding: 16px; }
+.btn.alt { background: #fff; } .btn.teal { background: var(--teal); color: #fff; } .btn.yellow { background: var(--yellow); }
+.btn.sm { padding: 9px 14px; font-size: .95rem; border-radius: 12px; box-shadow: 0 3px 0 var(--ink); }
+.btn.pix { font-family: var(--pixel); font-size: .74rem; line-height: 1.5; }
+.pill { display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; border: 2px solid var(--ink); border-radius: 99px; padding: 2px 10px; background: #fff; }
+.icon-btn { width: 42px; height: 42px; border-radius: 12px; border: var(--b); background: #fff; display: grid; place-items: center; box-shadow: 0 3px 0 var(--ink); padding: 0; flex: none; }
+.icon-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.icon-btn svg { width: 20px; height: 20px; } .icon-btn.off { opacity: .45; }
+
+.topbar { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 2px solid var(--line); background: #fff; }
+.topbar .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; text-decoration: none; color: var(--ink); }
+.topbar .brand img { width: 38px; height: 38px; border-radius: 50%; border: 2.5px solid var(--ink); background: var(--yellow); object-fit: cover; flex: none; }
+.topbar .brand b { font-weight: 800; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.topbar .brand small { display: block; font-size: .72rem; color: var(--muted); font-weight: 600; line-height: 1.2; }
+@media (max-width: 460px) { .topbar { padding: 8px 10px; gap: 6px; } .icon-btn { width: 36px; height: 36px; } .topbar .brand small, .topbar .brand img { display: none; } }
+
+/* ---------- start ---------- */
+.start { display: grid; gap: 22px; grid-template-columns: 1fr; align-items: start; margin: auto 0; padding-block: 8px 20px; }
+.hero { background: var(--teal); color: #fff; padding: 22px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+.hero-top { display: flex; gap: 12px; align-items: center; }
+.hero-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.hero h1 { margin: 4px 0 0; font-size: clamp(1.9rem, 6.5vw, 2.8rem); line-height: 1.05; font-weight: 800; text-wrap: balance; }
+.hero h1 em { font-style: normal; background: var(--yellow); color: var(--ink); border: var(--b); border-radius: 14px; padding: 0 10px; display: inline-block; transform: rotate(-2deg); }
+.hero p { margin: 0; font-weight: 600; max-width: 44ch; }
+.hero .pill { color: var(--ink); align-self: flex-start; }
+.hero-art { width: 130px; flex: none; image-rendering: pixelated; filter: drop-shadow(4px 4px 0 var(--ink)); animation: bob 2.4s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-6px); } }
+.howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.how { padding: 12px; border: var(--b); border-radius: 16px; background: var(--yellow-tint); color: var(--ink); }
+.how:nth-child(2) { background: var(--pink-tint); } .how:nth-child(3) { background: var(--orange-tint); }
+.how b { display: block; font-weight: 800; } .how span { font-size: .85rem; display: block; line-height: 1.4; margin-top: 4px; }
+.form { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.form h2 { margin: 0; font-size: 1.25rem; font-weight: 800; }
+.fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .fields .full { grid-column: 1 / -1; }
+label.f { display: flex; flex-direction: column; gap: 4px; font-weight: 700; font-size: .9rem; }
+label.f input, label.f select { font-size: 16px; padding: 12px; border: 2.5px solid var(--ink); border-radius: 12px; background: #fff; width: 100%; min-width: 0; }
+.grp { display: flex; flex-direction: column; gap: 6px; } .grp > span { font-weight: 700; font-size: .9rem; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chip { border: 2.5px solid var(--ink); border-radius: 12px; background: #fff; padding: 8px 12px; font-weight: 700; font-size: .9rem; box-shadow: 0 3px 0 var(--ink); text-align: center; }
+.chip[aria-pressed="true"] { background: var(--yellow); }
+.chip small { display: block; font-weight: 600; font-size: .75rem; color: var(--muted); }
+.form-err { color: var(--bad); font-weight: 700; font-size: .9rem; min-height: 1.2em; margin: -4px 0 0; }
+.best { display: flex; justify-content: space-between; font-size: .9rem; color: var(--muted); font-weight: 700; } .best b { color: var(--ink); }
+@media (min-width: 760px) { .start { grid-template-columns: 1.1fr 1fr; gap: 28px; } }
+@media (max-width: 480px) { .howto { grid-template-columns: 1fr; } .hero-art { width: 92px; align-self: flex-start; margin-top: 36px; } }
+
+/* ---------- game ---------- */
+.game { display: grid; gap: 12px; grid-template-columns: 1fr; grid-template-areas: "hud" "stage" "dpad" "notes"; }
+.ghud { grid-area: hud; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 800; }
+.ghud .room { font-family: var(--pixel); font-size: .6rem; line-height: 1.6; background: var(--teal); color: #fff; border: 2px solid var(--ink); border-radius: 8px; padding: 6px 8px; }
+.ghud .stat-s { font-size: .9rem; } .ghud .stat-s b { font-variant-numeric: tabular-nums; }
+.hearts { display: inline-flex; gap: 2px; vertical-align: middle; } .hearts svg { width: 18px; height: 18px; }
+.stage { grid-area: stage; position: relative; justify-self: center; border: var(--b); border-radius: 14px; box-shadow: 6px 6px 0 var(--ink); overflow: hidden; line-height: 0; background: #E3EFEE; touch-action: none; }
+.stage canvas { display: block; }
+.toast { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); background: #fff; border: var(--b); border-radius: 10px; padding: 6px 12px; font-weight: 800; font-size: .85rem; line-height: 1.3; max-width: 90%; text-align: center; z-index: 3; pointer-events: none; box-shadow: 0 3px 0 var(--ink); }
+.dpad { grid-area: dpad; justify-self: center; display: none; grid-template-columns: repeat(3, 62px); grid-template-rows: repeat(3, 52px); gap: 4px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.dpad button { border: var(--b); background: #fff; border-radius: 12px; font-size: 1.2rem; box-shadow: 0 4px 0 var(--ink); touch-action: none; padding: 0; }
+.dpad button.on { background: var(--yellow); transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+.dpad .u { grid-area: 1 / 2; } .dpad .l { grid-area: 2 / 1; } .dpad .r { grid-area: 2 / 3; } .dpad .d { grid-area: 3 / 2; }
+body.touch .dpad { display: grid; }
+.side { background: #fff; border: var(--b); border-radius: 16px; padding: 14px; min-width: 0; box-shadow: 4px 4px 0 var(--ink); }
+.side h3 { margin: 0 0 8px; font-family: var(--pixel); font-size: .6rem; line-height: 1.6; color: var(--teal-ink); font-weight: 400; }
+.notes-box { grid-area: notes; }
+.nb { display: flex; flex-direction: column; gap: 10px; font-size: .86rem; line-height: 1.4; }
+.nb-b { border-left: 4px solid var(--teal); padding: 2px 0 2px 10px; }
+.nb-b > b { display: flex; align-items: center; gap: 6px; } .nb-b > b .ok { margin-left: auto; color: var(--good); }
+.nb-b ul { margin: 4px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.nb-b li em { font-style: normal; font-weight: 700; color: var(--teal-ink); } .nb-b li.x { color: var(--bad); }
+.nb-empty { color: var(--muted); margin: 0; font-size: .85rem; }
+@media (min-width: 980px) {
+  .game { grid-template-columns: 1fr 300px; grid-template-areas: "hud hud" "stage notes" "dpad notes"; align-items: start; }
+}
+
+/* ---------- battle ---------- */
+.battle { grid-area: stage; width: 100%; max-width: 760px; justify-self: center; background: #fff; border: var(--b); border-radius: 18px; box-shadow: 6px 6px 0 var(--ink); overflow: hidden; display: flex; flex-direction: column; }
+.arena { position: relative; background: linear-gradient(180deg, #DDF2F2 0%, #DDF2F2 55%, #CFE8C9 55%, #BFE0B8 100%); height: clamp(250px, 46vh, 360px); overflow: hidden; }
+.plat { position: absolute; border-radius: 50%; background: #A9D49F; border: 3px solid rgba(31,42,46,.25); }
+.plat.foe { right: 6%; top: 30%; width: 36%; height: 13%; }
+.plat.me { left: 2%; bottom: 3%; width: 42%; height: 14%; }
+.foe-sp { position: absolute; right: 12%; top: 3%; width: 24%; height: 36%; display: flex; align-items: flex-end; justify-content: center; }
+.foe-sp canvas, .foe-sp img { height: 100%; width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(3px 3px 0 rgba(31,42,46,.35)); }
+.foe-sp.boss { width: 30%; height: 42%; right: 9%; top: 2%; }
+.me-sp { position: absolute; left: 6%; bottom: 6%; width: 30%; height: 54%; display: flex; align-items: flex-end; justify-content: center; }
+.me-sp img, .me-sp canvas { height: 100%; width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+.infobox { position: absolute; background: #fff; border: var(--b); border-radius: 10px 10px 10px 2px; padding: 6px 10px; font-weight: 800; font-size: .85rem; line-height: 1.25; box-shadow: 3px 3px 0 var(--ink); }
+.infobox small { display: block; font-weight: 700; font-size: .7rem; color: var(--muted); }
+.infobox.foe { left: 3%; top: 5%; max-width: 46%; }
+.infobox.me { right: 3%; bottom: 6%; max-width: 46%; text-align: right; }
+.tube-wrap { position: absolute; left: 50%; top: 16%; transform: translateX(-50%); width: 30%; max-width: 190px; height: 78%; }
+.tube-wrap svg { width: 100%; height: 100%; overflow: visible; }
+.tcap { position: absolute; left: 50%; bottom: 2%; transform: translateX(-50%); background: rgba(255,255,255,.92); border: 2px solid var(--ink); border-radius: 8px; padding: 2px 8px; font-size: .74rem; font-weight: 800; white-space: nowrap; line-height: 1.4; }
+.shake { animation: shake .4s; } @keyframes shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+.flash { animation: flash .5s; } @keyframes flash { 50% { filter: brightness(2.2); } }
+.caught { animation: caught .7s forwards; } @keyframes caught { to { transform: scale(.1) translateY(-40px); opacity: 0; } }
+.bpanel { border-top: var(--b); padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #fff; }
+.btext { border: var(--b); border-radius: 10px; padding: 10px 12px; min-height: 76px; font-size: 1rem; line-height: 1.4; background: #fff; box-shadow: inset 0 0 0 3px var(--yellow-tint); }
+.btext .eff { display: block; font-family: var(--pixel); font-size: .66rem; line-height: 1.7; margin-bottom: 4px; }
+.btext .eff.super { color: var(--good); } .btext .eff.weak { color: var(--orange); } .btext .eff.none { color: var(--muted); } .btext .eff.bad { color: var(--bad); }
+.btext .obs { font-weight: 800; }
+.btext .hint { display: block; color: var(--teal-ink); font-size: .88rem; font-weight: 700; margin-top: 4px; }
+.bmenu { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bmenu .btn { padding: 12px 6px; font-size: .9rem; }
+.mlabel { font-family: var(--pixel); font-size: .55rem; line-height: 1.6; color: var(--teal-ink); }
+.pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.tog { border: 2.5px solid var(--ink); background: #fff; border-radius: 10px; padding: 7px 10px; font-weight: 700; font-size: .88rem; box-shadow: 0 3px 0 var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.tog[aria-pressed="true"] { background: var(--yellow); }
+.tog:disabled { opacity: .35; }
+.tog.ruled { opacity: .45; text-decoration: line-through; }
+.tog i { width: 11px; height: 11px; border-radius: 50%; display: inline-block; border: 2px solid var(--ink); }
+.merr { color: var(--bad); font-weight: 700; font-size: .88rem; min-height: 1.2em; margin: 0; }
+.row-btns { display: flex; gap: 8px; flex-wrap: wrap; } .row-btns .btn { flex: 1 1 120px; }
+.ions { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+.ions button { border: 2.5px solid var(--ink); background: #fff; border-radius: 10px; padding: 8px 4px; font-weight: 800; font-size: 1.02rem; line-height: 1.15; box-shadow: 0 3px 0 var(--ink); }
+.ions button small { display: block; font-size: .64rem; font-weight: 600; color: var(--muted); }
+.ions button[aria-pressed="true"] { background: var(--yellow); }
+.ions button.ruled { opacity: .4; text-decoration: line-through; }
+@media (max-width: 520px) {
+  .bmenu { grid-template-columns: 1fr 1fr; }
+  .infobox { font-size: .76rem; } .tube-wrap { width: 34%; }
+}
+
+/* ---------- modal ---------- */
+.modal { position: fixed; inset: 0; background: rgba(31,42,46,.55); display: grid; place-items: center; padding: 16px; z-index: 40; overflow-y: auto; }
+.mbox { width: 100%; max-width: 600px; background: #fff; border: var(--b); border-radius: 20px; box-shadow: 6px 6px 0 var(--ink); padding: 20px; display: flex; flex-direction: column; gap: 12px; max-height: calc(100dvh - 32px); overflow-y: auto; }
+.mbox h2 { margin: 0; font-family: var(--pixel); font-size: .9rem; line-height: 1.6; color: var(--teal-ink); font-weight: 400; }
+.mbox h2.good { color: var(--good); } .mbox h2.bad { color: var(--bad); }
+.mbox p { margin: 0; } .muted { color: var(--muted); font-size: .9rem; }
+.unknowns { display: flex; flex-direction: column; gap: 2px; background: var(--yellow); border: var(--b); border-radius: 12px; padding: 10px 12px; }
+.unknowns span { font-family: var(--pixel); font-size: .55rem; letter-spacing: .05em; }
+.unknowns b { font-size: 1.25rem; font-weight: 800; line-height: 1.2; }
+.tip { background: var(--teal-tint); border: 2.5px solid var(--ink); border-radius: 12px; padding: 10px 12px; font-weight: 700; font-size: .95rem; }
+.keytest { background: var(--good-tint); border: 2.5px solid var(--ink); border-radius: 12px; padding: 10px 12px; font-size: .92rem; }
+.dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.dex-c { border: 2.5px solid var(--ink); border-radius: 12px; padding: 8px 10px; font-size: .8rem; line-height: 1.35; background: #fff; }
+.dex-c b { display: block; font-size: 1.15rem; } .dex-c small { display: block; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
+.dex-c.locked { background: #F3F5F5; color: #9AA5A8; } .dex-c.locked b { color: #9AA5A8; }
+.dex-c.got { background: var(--yellow-tint); }
+
+/* ---------- results ---------- */
+.results { display: grid; gap: 18px; grid-template-columns: 1fr; padding-block: 8px 20px; }
+.res-hero { background: var(--teal); color: #fff; padding: 22px; display: flex; gap: 18px; align-items: center; }
+.big-ring { --p: 0; width: 120px; height: 120px; flex: none; border-radius: 50%; border: var(--b); background: conic-gradient(var(--yellow) calc(var(--p) * 1%), #fff 0); display: grid; place-items: center; }
+.big-ring span { width: 88px; height: 88px; border-radius: 50%; background: #fff; color: var(--ink); border: var(--b); display: grid; place-items: center; font-weight: 800; font-size: 1.7rem; }
+.res-hero h2 { margin: 0 0 4px; font-size: 1.6rem; line-height: 1.15; font-weight: 800; } .res-hero p { margin: 0; font-weight: 600; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stat { border: var(--b); border-radius: 14px; padding: 8px 10px; background: #fff; box-shadow: 0 4px 0 var(--ink); }
+.stat span { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat b { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat:nth-child(1) { background: var(--yellow-tint); } .stat:nth-child(2) { background: var(--pink-tint); } .stat:nth-child(3) { background: var(--teal-tint); } .stat:nth-child(4) { background: var(--orange-tint); }
+.panel { padding: 18px; display: flex; flex-direction: column; gap: 12px; min-width: 0; } .panel h3 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.weak, .review { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.weak li { border: 2.5px solid var(--ink); border-radius: 14px; padding: 10px 12px; background: var(--orange-tint); } .weak li b { display: block; } .weak li span { font-size: .9rem; }
+.weak li.good { background: var(--good-tint); }
+.review li { border-bottom: 2px solid var(--line); padding: 6px 0 8px; font-size: .95rem; } .review li:last-child { border-bottom: 0; }
+.review .you { color: var(--bad); font-weight: 700; } .review .key { color: var(--good); font-weight: 800; } .review .st { color: var(--muted); font-size: .85em; display: block; }
+.send { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-weight: 700; padding: 12px 14px; border: 2.5px solid var(--ink); border-radius: 14px; background: var(--teal-tint); }
+.send.err { background: var(--orange-tint); }
+.res-actions { display: flex; gap: 12px; flex-wrap: wrap; } .res-actions .btn { flex: 1 1 200px; }
+@media (min-width: 760px) { .results { grid-template-columns: 1fr 1fr; align-items: start; } .results .span { grid-column: 1 / -1; } }
+@media (max-width: 480px) { .stats { grid-template-columns: repeat(2, 1fr); } .res-hero { flex-direction: column; text-align: center; } }
+
+footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 14px 16px 20px; }
+footer a { color: var(--teal-ink); font-weight: 700; }
+canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+</style>
+</head>
+<body>
+
+<audio id="music" loop preload="auto" src="Quiz%20Rush%203.mp3"></audio>
+<audio id="music2" loop preload="auto" src="Quiz%20Rush%202.mp3"></audio>
+
+<header class="topbar">
+  <a class="brand" href="https://scienceiskhool.github.io/scienceiskhool/" target="_blank" rel="noopener">
+    <img src="https://scienceiskhool.github.io/scienceiskhool/assets/img/head.png" alt="" onerror="this.style.visibility='hidden'">
+    <span><b>Gotta Test 'Em All!</b><small>Science is Khool · Qualitative analysis</small></span>
+  </a>
+  <button class="icon-btn" id="btn-quit" type="button" aria-label="Back to start" title="Back to start" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>
+  </button>
+  <button class="icon-btn" id="btn-dex" type="button" aria-label="Lab-dex" title="Lab-dex" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h11"/><path d="M9 8h5"/></svg>
+  </button>
+  <button class="icon-btn" id="btn-music" type="button" aria-label="Music on" title="Music">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+  </button>
+  <button class="icon-btn" id="btn-sound" type="button" aria-label="Sound effects on" title="Sound effects">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <!-- START -->
+  <section id="scr-start" class="start">
+    <div class="card hero">
+      <div class="hero-top">
+        <div class="hero-txt">
+          <span class="pill">Sec 3–4 Chemistry · Qualitative analysis</span>
+          <h1>Gotta Test <em>'Em All!</em></h1>
+          <p>The lab is full of unlabelled bottles. Walk up to one, battle it with reagents, then name its ions to add them to your Lab-dex.</p>
+        </div>
+        <img class="hero-art" src="hero.png" alt="A pixel-art scientist in a lab coat and goggles" onerror="this.hidden=true">
+      </div>
+      <div class="howto">
+        <div class="how"><b>1 · Explore</b><span>Walk around the lab and bump into a bottle on a bench to start a battle.</span></div>
+        <div class="how"><b>2 · Test</b><span>Each move adds reagents. Watch the test tube: super effective tests pin down the ion.</span></div>
+        <div class="how"><b>3 · Name it</b><span>Name the ion to capture the bottle. Wrong names cost HP!</span></div>
+      </div>
+    </div>
+    <form class="card form" id="form-start" novalidate>
+      <h2>Ready, scientist?</h2>
+      <div class="grp">
+        <span id="lbl-course">Course</span>
+        <div class="seg" role="group" aria-labelledby="lbl-course">
+          <button type="button" class="chip" id="lv-easy" data-lv="easy" aria-pressed="true">Combined Science<small>Cations and anions</small></button>
+          <button type="button" class="chip" id="lv-hard" data-lv="hard" aria-pressed="false">Pure Chemistry<small>Adds Pb²⁺ and KI(aq)</small></button>
+        </div>
+      </div>
+      <div class="fields">
+        <label class="f full" for="in-name">Name<input id="in-name" maxlength="60" autocomplete="name" required></label>
+        <label class="f" for="in-cls">Class<select id="in-cls" required><option value="">Choose…</option></select></label>
+        <label class="f" for="in-reg">Register no.<input id="in-reg" inputmode="numeric" pattern="[0-9]*" maxlength="2"></label>
+      </div>
+      <p class="form-err" id="form-err" role="alert"></p>
+      <button class="btn big teal pix" type="button" id="btn-start">Start adventure ▶</button>
+      <div class="best"><span>Your best on this device</span><b id="txt-best">–</b></div>
+    </form>
+  </section>
+
+  <!-- GAME -->
+  <section id="scr-game" class="game" hidden>
+    <div class="ghud">
+      <span class="room" id="g-room">ROOM 1 · CATIONS ONLY</span>
+      <span class="stat-s">HP <span class="hearts" id="g-hp"></span></span>
+      <span class="stat-s">Score <b id="g-score">0</b></span>
+      <span class="stat-s">Time <b id="g-time">0:00</b></span>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="cv" aria-label="Lab map"></canvas>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+    <section class="battle" id="battle" hidden aria-label="Battle">
+      <div class="arena" id="arena">
+        <div class="plat foe"></div><div class="plat me"></div>
+        <div class="foe-sp" id="foe-sp"></div>
+        <div class="me-sp" id="me-sp"></div>
+        <div class="infobox foe" id="foe-info"></div>
+        <div class="infobox me" id="me-info"></div>
+        <div class="tube-wrap" id="tube-wrap"></div>
+      </div>
+      <div class="bpanel">
+        <div class="btext" id="btext" aria-live="polite"></div>
+        <div id="bctl"></div>
+      </div>
+    </section>
+    <div class="dpad" id="dpad" aria-label="Direction pad">
+      <button type="button" class="u" data-d="up" aria-label="Up">▲</button>
+      <button type="button" class="l" data-d="left" aria-label="Left">◀</button>
+      <button type="button" class="r" data-d="right" aria-label="Right">▶</button>
+      <button type="button" class="d" data-d="down" aria-label="Down">▼</button>
+    </div>
+    <div class="side notes-box">
+      <h3>LAB NOTEBOOK</h3>
+      <div class="nb" id="notebook"></div>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="scr-result" class="results" hidden>
+    <div class="card res-hero span">
+      <div class="big-ring" id="res-ring"><span id="res-pct">0%</span></div>
+      <div><h2 id="res-title">Nice work!</h2><p id="res-sub"></p></div>
+    </div>
+    <div class="stats span">
+      <div class="stat"><span>Score</span><b id="res-score">0</b></div>
+      <div class="stat"><span>Accuracy</span><b id="res-acc">0%</b></div>
+      <div class="stat"><span>Time</span><b id="res-time">0:00</b></div>
+      <div class="stat"><span>Bottles</span><b id="res-bottles">0</b></div>
+    </div>
+    <div class="card panel"><h3>Ions you mixed up</h3><ul class="weak" id="res-weak"></ul></div>
+    <div class="card panel"><h3>Your guesses</h3><ul class="review" id="res-review"></ul></div>
+    <div class="send span" id="send" aria-live="polite"><span id="send-msg">Sending your results…</span><button class="btn alt sm" id="btn-resend" type="button" hidden>Try again</button></div>
+    <div class="res-actions span">
+      <button class="btn big teal" id="btn-again" type="button">Play again ↻</button>
+      <button class="btn big alt" id="btn-dex2" type="button">Lab-dex</button>
+      <button class="btn big alt" id="btn-home" type="button">Change settings</button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="mbox" id="mbox"></div></div>
+<footer>Made for <a href="https://www.instagram.com/scienceiskhool/" target="_blank" rel="noopener">@scienceiskhool</a></footer>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+(function () {
+"use strict";
+
+/* =================== SETTINGS (safe to edit) =================== */
+var SUBMIT_URL = "https://script.google.com/macros/s/AKfycbxCTjRCQzLlWXmmY-5R0p75WCmeFLzC9ZM3gNbGRXpcc_d9qHMXdyCn12B4dHpnrBWe/exec";
+var SHEET_TAB = "Gotta Test Em All";   // tab name in your Google Sheet
+var MUSIC_VOLUME = 0.25;              // walking: Quiz Rush 3.mp3 · battles: Quiz Rush 2.mp3
+var HP_PER_ROOM = 5;                  // hearts at the start of each room; a wrong name costs 1
+var WALK_SPEED = 5;                   // tiles per second
+var POINTS = { capture: 300, boss: 600, firstTry: 100, room: 500 };
+// Sprites (same folder). Missing files fall back to built-in pixel sprites.
+var HERO_IMG = "hero.png";            // front / side view (faces right)
+var HERO_BACK_IMG = "hero back.png";  // back view: battles, and walking up
+var BOTTLE_IMGS = ["bottle 1.png", "bottle 2.png", "bottle 3.png", "bottle 4.png", "bottle 5.png"];
+var BOSS_IMG = "boss bottle.png";
+var BOTTLE_NAMES = ["CONEY", "ROUNDY", "STOPPY", "TUBBY", "DRIPPY"];
+var BOSS_NAME = "WINCHESTER";
+var CLASSES = [];
+["S1", "S2", "S3", "S4"].forEach(function (l) { ["Charity", "Courage", "Faith", "Hope", "Humility", "Integrity", "Love", "Respect", "Joy"].forEach(function (v) { CLASSES.push(l + " " + v); }); });
+CLASSES.push("S5 Faith", "Visitor", "Other");
+
+/* =================== CHEMISTRY =================== */
+var ION = {
+  Al:  { html: "Al<sup>3+</sup>", txt: "Al³⁺", name: "aluminium", t: "c" },
+  NH4: { html: "NH<span class=\"sub\">4</span><sup>+</sup>", txt: "NH₄⁺", name: "ammonium", t: "c" },
+  Ca:  { html: "Ca<sup>2+</sup>", txt: "Ca²⁺", name: "calcium", t: "c" },
+  Cu:  { html: "Cu<sup>2+</sup>", txt: "Cu²⁺", name: "copper(II)", t: "c" },
+  Fe2: { html: "Fe<sup>2+</sup>", txt: "Fe²⁺", name: "iron(II)", t: "c" },
+  Fe3: { html: "Fe<sup>3+</sup>", txt: "Fe³⁺", name: "iron(III)", t: "c" },
+  Pb:  { html: "Pb<sup>2+</sup>", txt: "Pb²⁺", name: "lead(II)", t: "c", pure: true },
+  Zn:  { html: "Zn<sup>2+</sup>", txt: "Zn²⁺", name: "zinc", t: "c" },
+  CO3: { html: "CO<span class=\"sub\">3</span><sup>2−</sup>", txt: "CO₃²⁻", name: "carbonate", t: "a" },
+  Cl:  { html: "Cl<sup>−</sup>", txt: "Cl⁻", name: "chloride", t: "a" },
+  I:   { html: "I<sup>−</sup>", txt: "I⁻", name: "iodide", t: "a" },
+  NO3: { html: "NO<span class=\"sub\">3</span><sup>−</sup>", txt: "NO₃⁻", name: "nitrate", t: "a" },
+  SO4: { html: "SO<span class=\"sub\">4</span><sup>2−</sup>", txt: "SO₄²⁻", name: "sulfate", t: "a" }
+};
+var CATIONS = ["Al", "NH4", "Ca", "Cu", "Fe2", "Fe3", "Pb", "Zn"];
+var ANIONS = ["CO3", "Cl", "I", "NO3", "SO4"];
+var REAGENTS = [
+  { k: "NaOH", html: "NaOH(aq)", txt: "NaOH(aq)", col: "#4FA8FF" },
+  { k: "NH3", html: "NH<span class=\"sub\">3</span>(aq)", txt: "NH₃(aq)", col: "#C38BFF" },
+  { k: "HNO3", html: "dilute HNO<span class=\"sub\">3</span>", txt: "dilute HNO₃", col: "#FF4D5E" },
+  { k: "Ba", html: "Ba(NO<span class=\"sub\">3</span>)<span class=\"sub\">2</span>(aq)", txt: "Ba(NO₃)₂(aq)", col: "#7CFF6B" },
+  { k: "AgNO3", html: "AgNO<span class=\"sub\">3</span>(aq)", txt: "AgNO₃(aq)", col: "#C9CCD6" },
+  { k: "lime", html: "limewater", txt: "limewater", col: "#FCE883" },
+  { k: "KI", html: "KI(aq)", txt: "KI(aq)", col: "#FFB36B", pure: true }
+];
+var RG = {}; REAGENTS.forEach(function (r) { RG[r.k] = r; });
+var EXTRAS = [
+  { k: "Al", html: "Al foil" }, { k: "warm", html: "🔥 Warm" }, { k: "litmus", html: "Damp red litmus" }, { k: "splint", html: "🔥 Lighted splint" }
+];
+
+// Colours for the animated test tube
+var COL = { clear: "#EAF6FF", white: "#FFFFFF", lblue: "#8EC5FF", dblue: "#2347C8", green: "#4E8F45", rbrown: "#9A3B1E", yellow: "#F2CF2E", brown: "#9A5A1E", acid: "#FFD3D3" };
+var SOL = { Cu: "#9FD3F7", Fe2: "#CFE8B8", Fe3: "#EBC77A" };   // tint of the solution itself
+var NAOH = {
+  Al:  { t: "white ppt, soluble in excess giving a colourless solution", p: "white", x: "dissolve" },
+  NH4: { t: "no ppt", p: null },
+  Ca:  { t: "white ppt, insoluble in excess", p: "white", x: "stay" },
+  Cu:  { t: "light blue ppt, insoluble in excess", p: "lblue", x: "stay" },
+  Fe2: { t: "green ppt, insoluble in excess; ppt turns red-brown on standing", p: "green", x: "stay", stand: true },
+  Fe3: { t: "red-brown ppt, insoluble in excess", p: "rbrown", x: "stay" },
+  Pb:  { t: "white ppt, soluble in excess giving a colourless solution", p: "white", x: "dissolve" },
+  Zn:  { t: "white ppt, soluble in excess giving a colourless solution", p: "white", x: "dissolve" }
+};
+var NH3 = {
+  Al:  { t: "white ppt, insoluble in excess", p: "white", x: "stay" },
+  NH4: { t: "no visible change", p: null },
+  Ca:  { t: "no ppt", p: null },
+  Cu:  { t: "light blue ppt, soluble in excess giving a dark blue solution", p: "lblue", x: "dblue" },
+  Fe2: { t: "green ppt, insoluble in excess; ppt turns red-brown on standing", p: "green", x: "stay", stand: true },
+  Fe3: { t: "red-brown ppt, insoluble in excess", p: "rbrown", x: "stay" },
+  Pb:  { t: "white ppt, insoluble in excess", p: "white", x: "stay" },
+  Zn:  { t: "white ppt, soluble in excess giving a colourless solution", p: "white", x: "dissolve" }
+};
+var KI = { Pb: { t: "yellow ppt", p: "yellow" }, Fe3: { t: "solution turns brown", sol: "brown" }, Cu: { t: "white ppt in a brown solution", p: "white", sol: "brown" } };
+var KEY_TEST = {
+  Al: "NaOH: white ppt, soluble in excess. NH₃: white ppt, insoluble in excess.",
+  NH4: "Warm with NaOH(aq): ammonia is given off, turning damp red litmus blue.",
+  Ca: "NaOH: white ppt, insoluble in excess. NH₃: no ppt.",
+  Cu: "NaOH: light blue ppt, insoluble in excess. NH₃: light blue ppt, dissolves in excess to a dark blue solution.",
+  Fe2: "NaOH or NH₃: green ppt, insoluble in excess (turns red-brown on standing).",
+  Fe3: "NaOH or NH₃: red-brown ppt, insoluble in excess.",
+  Pb: "NaOH: white ppt, soluble in excess. NH₃: white ppt, insoluble in excess. KI: yellow ppt.",
+  Zn: "NaOH and NH₃: white ppt, soluble in excess in both.",
+  CO3: "Dilute acid: effervescence; the CO₂ gives a white ppt with limewater.",
+  Cl: "Acidify with dilute HNO₃, then AgNO₃(aq): white ppt.",
+  I: "Acidify with dilute HNO₃, then AgNO₃(aq): yellow ppt.",
+  NO3: "NaOH(aq) + Al foil, warm: ammonia turns damp red litmus blue.",
+  SO4: "Acidify with dilute HNO₃, then Ba(NO₃)₂(aq): white ppt."
+};
+
+function checkPlan(s) {
+  var mains = ["NaOH", "NH3", "KI", "AgNO3", "Ba"].filter(function (k) { return s[k]; });
+  if (!mains.length && !s.HNO3 && !s.lime) return s.warm || s.litmus || s.Al || s.splint ? "Add a reagent too." : "Pick a reagent.";
+  if (mains.length > 1) return "One test reagent at a time: " + mains.map(function (k) { return RG[k].html; }).join(" and ") + " are separate tests.";
+  if (s.HNO3 && (s.NaOH || s.NH3 || s.KI)) return "Don't mix dilute HNO<span class=\"sub\">3</span> with that reagent: run them as separate tests.";
+  if ((s.AgNO3 || s.Ba) && !s.HNO3) return "Acidify first: add dilute HNO<span class=\"sub\">3</span> too. (Carbonate would also give a ppt.)";
+  if (s.lime && !s.HNO3) return "Limewater tests a gas. Add dilute HNO<span class=\"sub\">3</span> to make any gas first.";
+  if (s.lime && (s.AgNO3 || s.Ba)) return "One test at a time: limewater goes with acid only.";
+  if (s.Al && !s.NaOH) return "Al foil is used with NaOH(aq).";
+  if (s.warm && !s.NaOH) return "Warming is used here with NaOH(aq) to drive off a gas.";
+  if (s.litmus && !s.NaOH) return "Damp red litmus is used here to test the gas from NaOH(aq).";
+  if (s.splint && !(s.NaOH || s.HNO3)) return "A splint tests a gas: use it with acid, or NaOH(aq) + warming.";
+  return "";
+}
+function methodHTML(s, plain) {
+  var R = function (k) { return plain ? RG[k].txt : RG[k].html; }, out = [];
+  if (s.HNO3) out.push(R("HNO3"));
+  ["NaOH", "NH3", "KI", "AgNO3", "Ba"].forEach(function (k) { if (s[k]) out.push(R(k)); });
+  if (s.Al) out.push("Al foil"); if (s.warm) out.push("warmed"); if (s.lime) out.push("gas into limewater");
+  if (s.litmus) out.push("damp red litmus"); if (s.splint) out.push("lighted splint");
+  return out.join(s.HNO3 && out.length > 1 ? ", then " : ", ");
+}
+function catOf(ions) { for (var i = 0; i < ions.length; i++) if (ION[ions[i]].t === "c") return ions[i]; return null; }
+function anOf(ions) { for (var i = 0; i < ions.length; i++) if (ION[ions[i]].t === "a") return ions[i]; return null; }
+// The heart of the game: what happens when reagents s are added to a bottle holding `ions` (1 ion, or a cation + anion).
+// Returns text (O-level wording), visible (anything seen?), hint, and animation steps.
+function react(ions, s) {
+  var cat = catOf(ions), an = anOf(ions), lines = [], hint = "", steps = [], vis = false;
+  var start = (cat && SOL[cat]) || COL.clear;
+  if (s.NaOH || s.NH3) {
+    var key = s.NaOH ? "NaOH" : "NH3", T = s.NaOH ? NAOH : NH3, o = cat ? T[cat] : null;
+    lines.push(o ? o.t : "no visible change");
+    steps.push({ cap: "A few drops of " + RG[key].html, drops: RG[key].col, foil: !!s.Al, ppt: o && o.p ? COL[o.p] : null });
+    if (o && o.p) {
+      vis = true;
+      steps.push({ cap: "…then " + RG[key].html + " in excess", drops: RG[key].col, pptOut: o.x !== "stay", sol: o.x === "dblue" ? COL.dblue : o.x === "dissolve" ? COL.clear : null });
+      if (o.stand) steps.push({ cap: "Leave to stand", brownTop: true });
+    }
+    if (s.NaOH) {
+      var gas = cat === "NH4" || (an === "NO3" && s.Al);
+      if (s.warm) {
+        if (gas) {
+          vis = true;
+          lines.push(s.litmus ? "on warming, a gas is given off that turns damp red litmus blue" : "on warming, a pungent gas is given off");
+          if (!s.litmus) hint = "Identify the gas: test it with damp red litmus paper.";
+          if (s.splint) lines.push("the gas does not make a lighted splint pop");
+        } else {
+          lines.push("on warming, no gas is given off" + (s.litmus ? "; damp red litmus stays red" : ""));
+          if (s.splint) lines.push("no gas to test with the splint");
+        }
+        steps.push({ cap: "Warm" + (s.litmus ? ", litmus at the mouth" : ""), warm: true, gas: gas, litmus: s.litmus ? (gas ? "blue" : "red") : null, splint: s.splint ? "lit" : null });
+      } else if (s.litmus || s.splint) {
+        if (s.litmus) { lines.push("damp red litmus stays red"); hint = "Tip: gases are usually driven off by warming."; }
+        if (s.splint) lines.push("no gas to test with the splint");
+        steps.push({ cap: "Test at the mouth of the tube", litmus: s.litmus ? "red" : null, splint: s.splint ? "lit" : null });
+      }
+    }
+  } else if (s.KI) {
+    var k = cat ? KI[cat] : null;
+    lines.push(k ? k.t : "no visible change"); if (k) vis = true;
+    steps.push({ cap: "Add " + RG.KI.html, drops: RG.KI.col, ppt: k && k.p ? COL[k.p] : null, sol: k && k.sol ? COL[k.sol] : null });
+  } else if (s.HNO3) {
+    var fizz = an === "CO3";
+    var st = { cap: "Add " + RG.HNO3.html, drops: COL.acid, fizz: fizz };
+    if (s.lime) st.lime = fizz ? "milky" : "clear";
+    if (s.splint) st.splint = fizz ? "out" : "lit";
+    steps.push(st);
+    if (s.AgNO3 || s.Ba) {
+      var r2 = s.AgNO3 ? "AgNO3" : "Ba", p = null;
+      if (s.AgNO3 && an === "Cl") p = "white"; else if (s.AgNO3 && an === "I") p = "yellow"; else if (s.Ba && an === "SO4") p = "white";
+      lines.push(fizz ? "effervescence when the acid is added; then no ppt" : p ? (p === "white" ? "white ppt" : "yellow ppt") : "no visible change");
+      if (p || fizz) vis = true;
+      steps.push({ cap: "Then add " + RG[r2].html, drops: RG[r2].col, ppt: p ? COL[p] : null });
+    } else if (fizz) {
+      vis = true; lines.push("effervescence");
+      if (s.lime) lines.push("the gas gives a white ppt in limewater");
+      if (s.splint) lines.push("the gas puts out a lighted splint");
+      if (!s.lime) hint = s.splint ? "Many gases put out a splint. Limewater is the test that identifies this gas." : "Identify the gas: bubble it into limewater.";
+    } else { lines.push("no visible change"); if (s.lime || s.splint) lines.push("no gas given off"); }
+  }
+  return { text: lines.join("; "), visible: vis, hint: hint, steps: steps, start: start };
+}
+// Super effective = among everything this bottle could be, the result pins down an ion.
+function effectiveness(bottle, s, res) {
+  if (!res.visible) return "none";
+  var same = bottle.pool.filter(function (c) { return react(c, s).text === res.text; });
+  var cs = {}, as = {};
+  same.forEach(function (c) { cs[catOf(c) || "-"] = 1; as[anOf(c) || "-"] = 1; });
+  var ck = Object.keys(cs), ak = Object.keys(as);
+  if ((ck.length === 1 && ck[0] !== "-") || (ak.length === 1 && ak[0] !== "-")) return "super";
+  return "weak";
+}
+// Soluble salts students could be given (one cation + one anion)
+function saltPool() {
+  var out = [];
+  courseIons(CATIONS).forEach(function (c) {
+    ANIONS.forEach(function (a) {
+      if (a === "CO3" && c !== "NH4") return;              // carbonates insoluble (except ammonium)
+      if (a === "Cl" && c === "Pb") return;                // PbCl2 insoluble
+      if (a === "I" && (c === "Pb" || c === "Cu" || c === "Fe3")) return;   // PbI2 insoluble; Cu2+/Fe3+ oxidise iodide
+      if (a === "SO4" && (c === "Pb" || c === "Ca")) return; // insoluble / sparingly soluble
+      if (a === "NO3" && c === "NH4") return;              // NH4+ would mask the nitrate test
+      out.push([c, a]);
+    });
+  });
+  return out;
+}
+
+/* =================== HELPERS =================== */
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function store(k, v) { try { localStorage.setItem("testemall_" + k, JSON.stringify(v)); } catch (e) {} }
+function load(k, d) { try { var v = localStorage.getItem("testemall_" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+function fmtTime(s) { s = Math.round(s); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function courseIons(list) { return list.filter(function (k) { return !ION[k].pure || G.lv === "hard"; }); }
+function courseReagents() { return REAGENTS.filter(function (r) { return !r.pure || G.lv === "hard"; }); }
+function ionsHTML(ions) { return ions.map(function (k) { return ION[k].html; }).join(" + "); }
+function ionsTxt(ions) { return ions.map(function (k) { return ION[k].txt; }).join(" + "); }
+function ionsName(ions) { return ions.map(function (k) { return ION[k].name; }).join(" + "); }
+var isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && matchMedia("(pointer: coarse)").matches);
+if (isTouch) document.body.classList.add("touch");
+function show(id) {
+  ["scr-start", "scr-game", "scr-result"].forEach(function (s) { $(s).hidden = s !== id; });
+  $("btn-quit").hidden = id === "scr-start"; $("btn-dex").hidden = id !== "scr-game";
+  window.scrollTo(0, 0);
+}
+
+/* =================== PIXEL SPRITES =================== */
+var HEART_MAP = [".kk.kk.", "kRRkRRk", "kRwRRRk", "kRRRRRk", ".kRRRk.", "..kRk..", "...k..."];
+function pixelSVG(map, pal) {
+  var w = 0, r = "";
+  map.forEach(function (row, y) { w = Math.max(w, row.length); for (var x = 0; x < row.length; x++) { var c = pal[row[x]]; if (c) r += '<rect x="' + x + '" y="' + y + '" width="1.02" height="1.02" fill="' + c + '"/>'; } });
+  return '<svg viewBox="0 0 ' + w + " " + map.length + '" shape-rendering="crispEdges" aria-hidden="true">' + r + "</svg>";
+}
+function heartsHTML(n, max) { var h = ""; for (var i = 0; i < max; i++) h += pixelSVG(HEART_MAP, i < n ? { k: "#1F2A2E", R: "#FF4D5E", w: "#FFFFFF" } : { k: "#9AA5A8", R: "#E4E8E9", w: "#E4E8E9" }); return h; }
+// Build a bottle silhouette from half-widths per row, then add liquid, a face and a "?" label.
+function bottleMap(kind, liquid) {
+  var W = kind === "boss" ? 24 : 16, H = kind === "boss" ? 26 : 18, hw = [], cap = 0, i;
+  for (var y = 0; y < H; y++) {
+    var w;
+    if (kind === 0) w = y < 6 ? 2 : Math.min(7, 2 + Math.round((y - 6) * 0.6));                 // conical flask
+    else if (kind === 1) { if (y < 7) w = 2; else { var dy = y - 12; w = Math.max(0, Math.round(Math.sqrt(Math.max(0, 36 - dy * dy)))); if (w < 2) w = 2; } }   // round-bottom
+    else if (kind === 2) w = y < 2 ? 2 : y < 4 ? 3 : y < 5 ? 5 : 6;                              // reagent bottle
+    else if (kind === 3) w = y < 16 ? 3 : 2;                                                    // test tube
+    else if (kind === 4) w = y < 4 ? 2 : y < 6 ? 1 : y < 7 ? 4 : 5;                             // dropper bottle
+    else w = y < 3 ? 4 : y < 6 ? 5 : y < 8 ? 8 : 10;                                            // boss Winchester
+    hw.push(w);
+  }
+  if (kind === 2) cap = 2; else if (kind === 4) cap = 4; else if (kind === "boss") cap = 3;
+  var cx = W / 2, rows = [];
+  for (y = 0; y < H; y++) { var r = ""; for (var x = 0; x < W; x++) r += (x >= cx - hw[y] && x < cx + hw[y]) ? "g" : "."; rows.push(r); }
+  var g = rows.map(function (r) { return r.split(""); });
+  var liqTop = Math.round(H * (kind === 3 ? 0.45 : 0.5));
+  for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+    if (g[y][x] !== "g") continue;
+    if (y < cap) g[y][x] = "s";
+    else if (y >= liqTop) g[y][x] = "L";
+  }
+  // outline
+  var out = g.map(function (r) { return r.slice(); });
+  for (y = 0; y < H; y++) for (x = 0; x < W; x++) {
+    if (g[y][x] === ".") continue;
+    var edge = y === 0 || y === H - 1 || x === 0 || x === W - 1 || g[y - 1][x] === "." || g[y + 1][x] === "." || g[y][x - 1] === "." || g[y][x + 1] === ".";
+    if (edge) out[y][x] = "k";
+  }
+  // highlight stripe
+  for (y = cap + 1; y < H - 2; y++) { var lx = Math.floor(cx - hw[y]) + 1; if (out[y][lx] && out[y][lx] !== "k") out[y][lx] = "w"; }
+  // face: eyes + mouth on the body
+  var fy = kind === "boss" ? 12 : kind === 3 ? 7 : 9, ex = kind === "boss" ? 3 : 2;
+  [[fy, cx - ex - 1], [fy, cx + ex], [fy + 1, cx - ex - 1], [fy + 1, cx + ex]].forEach(function (p) { if (out[p[0]] && out[p[0]][p[1]] && out[p[0]][p[1]] !== ".") out[p[0]][p[1]] = "e"; });
+  var my = fy + 3; for (i = -1; i < 1; i++) if (out[my] && out[my][cx + i] && out[my][cx + i] !== ".") out[my][cx + i] = "m";
+  if (kind === "boss") { out[fy - 1][cx - ex - 2] = "e"; out[fy - 1][cx + ex + 1] = "e"; }   // angry brows
+  // "?" label
+  var qy = fy + 5;
+  if (out[qy + 3]) {
+    var Q = ["kkk", "..k", ".k.", "...", ".k."];
+    for (i = 0; i < Q.length; i++) for (var j = 0; j < 3; j++) { var yy = qy + i, xx = cx - 1 + j; if (out[yy] && out[yy][xx] && out[yy][xx] !== "." && out[yy][xx] !== "k") out[yy][xx] = Q[i][j] === "k" ? "k" : "q"; }
+  }
+  return { map: out.map(function (r) { return r.join(""); }), pal: { k: "#1F2A2E", g: "#E8F7F7", w: "#FFFFFF", L: liquid, s: kind === "boss" ? "#E2463A" : "#56656A", e: "#1F2A2E", m: "#E2463A", q: "#FFFFFF" } };
+}
+var spriteCache = {};
+function pixelCanvas(map, pal, key) {
+  if (key && spriteCache[key]) return spriteCache[key];
+  var w = 0; map.forEach(function (r) { w = Math.max(w, r.length); });
+  var c = document.createElement("canvas"); c.width = w; c.height = map.length;
+  var x = c.getContext("2d");
+  map.forEach(function (row, y) { for (var i = 0; i < row.length; i++) { var col = pal[row[i]]; if (col) { x.fillStyle = col; x.fillRect(i, y, 1, 1); } } });
+  if (key) spriteCache[key] = c;
+  return c;
+}
+var LIQUIDS = ["#FF8243", "#069494", "#FFC0CB", "#FCE883", "#A57BFF"];   // decorative only; never hints at the ion
+function bottleSprite(kind) {
+  var src = kind === "boss" ? BOSS_IMG : BOTTLE_IMGS[kind];
+  if (IMGS[src]) return IMGS[src];
+  var b = bottleMap(kind, kind === "boss" ? "#6B4A9E" : LIQUIDS[kind % LIQUIDS.length]);
+  return pixelCanvas(b.map, b.pal, "bottle" + kind);
+}
+// Placeholder hero if hero.png is missing
+var HERO_MAP = ["......kkkkk.....", ".....kHHHHHk....", "....kHHHHHHHk...", "....kHSSSSSHk...", "...kkkkSSkkkk...", "...kGGkSSkGGk...", "....kkSSSSkk....", ".....kSmmSk.....", "....kWWkkWWk....", "...kWWWtWWWWk.kk", "..kWWkWtWWkWWkFk", "..kSkWWtWWWkSkFk", "...kkWWtWWWWkkkk", "....kWWWWWWk....", "....kBBkkBBk....", "....kkk..kkk...."];
+var HERO_PAL = { k: "#1F2A2E", H: "#3B2A20", S: "#F4C9A8", G: "#2EF2E0", m: "#C0504D", W: "#FFFFFF", t: "#069494", F: "#FF8243", B: "#3A4FA0" };
+var IMGS = {};
+function preload(src, cb) { if (!src) return; var im = new Image(); im.onload = function () { IMGS[src] = im; if (cb) cb(); }; im.src = src; }
+[HERO_IMG, HERO_BACK_IMG, BOSS_IMG].concat(BOTTLE_IMGS).forEach(function (s) { preload(s, function () { spriteCache = {}; }); });
+function heroSprite(back) { return (back && IMGS[HERO_BACK_IMG]) || IMGS[HERO_IMG] || pixelCanvas(HERO_MAP, HERO_PAL, "hero"); }
+function spriteEl(src) { // canvas/img -> a fresh DOM element
+  if (src.tagName === "IMG") { var i = document.createElement("img"); i.src = src.src; i.alt = ""; return i; }
+  var c = document.createElement("canvas"); c.width = src.width; c.height = src.height; c.getContext("2d").drawImage(src, 0, 0); return c;
+}
+
+/* =================== SOUND & MUSIC =================== */
+var Sound = {
+  on: load("sound", true), ctx: null,
+  tone: function (f, type, dur, vol, delay) {
+    if (!this.on) return;
+    try {
+      this.ctx = this.ctx || new (window.AudioContext || window.webkitAudioContext)();
+      var c = this.ctx, t = c.currentTime + (delay || 0), o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + .02);
+    } catch (e) {}
+  },
+  tap: function () { this.tone(660, "square", .04, .03); },
+  bump: function () { this.tone(110, "square", .08, .05); },
+  drip: function () { this.tone(1200, "sine", .06, .05); this.tone(700, "sine", .08, .04, .04); },
+  fizz: function () { for (var i = 0; i < 10; i++) this.tone(1500 + Math.random() * 1500, "square", .02, .015, i * .05); },
+  encounter: function () { [440, 554, 659, 880, 659, 880].forEach(function (n, i) { Sound.tone(n, "square", .07, .05, i * .06); }); },
+  superE: function () { [523, 784, 1047].forEach(function (n, i) { Sound.tone(n, "square", .09, .06, i * .07); }); },
+  weak: function () { this.tone(440, "triangle", .12, .06); this.tone(392, "triangle", .14, .06, .1); },
+  none: function () { this.tone(220, "triangle", .15, .05); },
+  hurt: function () { this.tone(160, "sawtooth", .25, .08); this.tone(100, "square", .25, .06, .1); },
+  capture: function () { [523, 659, 784, 1047, 784, 1047, 1319].forEach(function (n, i) { Sound.tone(n, "square", .1, .06, i * .08); }); },
+  door: function () { [392, 523, 659].forEach(function (n, i) { Sound.tone(n, "triangle", .12, .07, i * .1); }); },
+  lose: function () { [392, 330, 262, 196].forEach(function (n, i) { Sound.tone(n, "square", .22, .06, i * .2); }); }
+};
+var Music = {
+  walk: $("music"), fight: $("music2"), on: load("music", true), track: "walk",
+  cur: function () { return this.track === "fight" ? this.fight : this.walk; },
+  play: function () { if (!this.on) return; var el = this.cur(); try { el.volume = MUSIC_VOLUME; var p = el.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} },
+  pause: function () { try { this.walk.pause(); this.fight.pause(); } catch (e) {} },
+  stop: function () { this.pause(); try { this.walk.currentTime = 0; this.fight.currentTime = 0; } catch (e) {} this.track = "walk"; },
+  newRoom: function () { this.stop(); this.play(); },                                 // walking track restarts each room
+  battle: function () { this.pause(); this.track = "fight"; try { this.fight.currentTime = 0; } catch (e) {} this.play(); },
+  backToWalk: function () { this.pause(); this.track = "walk"; this.play(); }        // walking track resumes
+};
+function paintSound() {
+  $("btn-sound").classList.toggle("off", !Sound.on); $("btn-sound").setAttribute("aria-label", Sound.on ? "Sound effects on" : "Sound effects off");
+  $("btn-music").classList.toggle("off", !Music.on); $("btn-music").setAttribute("aria-label", Music.on ? "Music on" : "Music off");
+}
+$("btn-sound").addEventListener("click", function () { Sound.on = !Sound.on; store("sound", Sound.on); paintSound(); });
+$("btn-music").addEventListener("click", function () { Music.on = !Music.on; store("music", Music.on); paintSound(); if (!Music.on) Music.pause(); else if (!$("scr-game").hidden) Music.play(); });
+document.addEventListener("visibilitychange", function () { if (document.hidden) Music.pause(); else if (!$("scr-game").hidden) Music.play(); });
+paintSound();
+
+/* =================== START =================== */
+var G = { lv: load("lv", "easy") };
+(function setup() {
+  var sel = $("in-cls");
+  CLASSES.forEach(function (c) { var o = document.createElement("option"); o.textContent = c; sel.appendChild(o); });
+  var st = load("student", null);
+  if (st) { $("in-name").value = st.name || ""; sel.value = st.cls || ""; $("in-reg").value = st.reg || ""; }
+  ["lv-easy", "lv-hard"].forEach(function (id) { $(id).addEventListener("click", function () { G.lv = this.dataset.lv; store("lv", G.lv); paintStart(); }); });
+  paintStart();
+})();
+function paintStart() {
+  $("lv-easy").setAttribute("aria-pressed", G.lv === "easy"); $("lv-hard").setAttribute("aria-pressed", G.lv === "hard");
+  var b = load("best", {}); $("txt-best").textContent = b[G.lv] != null ? b[G.lv] + " pts" : "–";
+}
+function readStudent() {
+  var name = $("in-name").value.trim(), cls = $("in-cls").value, reg = $("in-reg").value.trim();
+  if (!name) return err("Type your name."), null;
+  if (!cls) return err("Choose your class."), null;
+  if (!(cls === "Visitor" || /^\d{1,2}$/.test(reg))) return err("Type your register number (1–2 digits)."), null;
+  err(""); var s = { name: name, cls: cls, reg: reg }; store("student", s); return s;
+  function err(m) { $("form-err").textContent = m; }
+}
+$("btn-start").addEventListener("click", function () { var s = readStudent(); if (s) { Sound.tone(1, "sine", .01, .0001); startGame(s); } });
+$("form-start").addEventListener("submit", function (e) { e.preventDefault(); });
+$("btn-quit").addEventListener("click", function () { endLoop(); closeModal(); Music.stop(); Confetti.stop(); show("scr-start"); paintStart(); });
+
+/* =================== ROOMS =================== */
+// # wall  T wall poster  D door  B bench  S sink  F fume cupboard  C cupboard  . floor  P start
+// 1-4 bottle on a bench  K boss bottle
+var MAPS = [[
+  "###TT##DD##TT###", "#FF..........SS#", "#..............#", "#.B1BB....BB2B.#", "#..............#", "#..............#",
+  "#.BB3B....B4BB.#", "#..............#", "#..............#", "#CC....P.....CC#", "################"
+], [
+  "###TT##DD##TT###", "#SS..........FF#", "#..............#", "#.B..B....B..B.#", "#.1..B....B..2.#", "#.B..B....B..B.#",
+  "#..............#", "#.BB3BB..BB4BB.#", "#..............#", "#CC....P.....CC#", "################"
+], [
+  "###TT##DD##TT###", "#FF....K.....FF#", "#..............#", "#.BB1B....BB2B.#", "#..............#", "#....SS..SS....#",
+  "#..............#", "#.BBBB....B3BB.#", "#..............#", "#CC....P.....CC#", "################"
+], [
+  "###TT##DD##TT###", "#SS....K.....SS#", "#..............#", "#.B..BB..BB..B.#", "#.1..........2.#", "#.B..BB..BB..B.#",
+  "#..............#", "#.FF..B3B...FF.#", "#..............#", "#CC....P.....CC#", "################"
+]];
+var COLS = 16, ROWS = 11;
+var UNKNOWN_TXT = { c: "Cations only", a: "Anions only", m: "A mix of cations and anions", s: "Salts: one cation + one anion each" };
+function buildRooms() {
+  var cats = courseIons(CATIONS), all = cats.concat(ANIONS), salts = shuffle(saltPool());
+  var singles = function (list, n) { return shuffle(list).slice(0, n).map(function (k) { return [k]; }); };
+  var boss3 = salts.shift(), r4 = salts.slice(0, 4);
+  return [
+    { name: "CATIONS", kind: "c", contents: singles(cats, 4), pool: cats.map(function (k) { return [k]; }),
+      tip: "NaOH(aq) and NH<span class=\"sub\">3</span>(aq) tell most cations apart. Watch the colour of the ppt, and what happens in excess." },
+    { name: "ANIONS", kind: "a", contents: singles(ANIONS, 4), pool: ANIONS.map(function (k) { return [k]; }),
+      tip: "Anion tests are all about method: acidify before AgNO<span class=\"sub\">3</span> or Ba(NO<span class=\"sub\">3</span>)<span class=\"sub\">2</span>, and identify any gas." },
+    { name: "MIXED", kind: "m", boss: true, contents: singles(all, 3).concat([boss3]), pool: all.map(function (k) { return [k]; }),
+      tip: "First work out: cation or anion? The boss at the door is a salt, so it hides one of each." },
+    { name: "SALTS", kind: "s", boss: true, contents: r4, pool: null,
+      tip: "Every bottle hides a cation AND an anion. Run cation tests and anion tests, then name both." }
+  ];
+}
+
+/* =================== GAME STATE =================== */
+var S = null, R = null, raf = 0, lastT = 0, modalOpen = false, mode = "walk";
+function startGame(student) {
+  S = { student: student, lv: G.lv, rooms: buildRooms(), room: 0, score: 0, hp: HP_PER_ROOM, secs: 0, guesses: [], tests: 0, superTests: 0, captured: 0, won: false, dex: {} };
+  show("scr-game"); setMode("walk"); resize();
+  startRoom();
+  endLoop(); lastT = performance.now(); raf = requestAnimationFrame(frame);
+}
+function endLoop() { cancelAnimationFrame(raf); raf = 0; }
+function startRoom() {
+  var rm = S.rooms[S.room], map = MAPS[S.room], salts = saltPool();
+  S.hp = HP_PER_ROOM;
+  R = { map: map, bottles: [], hero: null, t: 0, bumpT: 0, open: false };
+  var kinds = shuffle([0, 1, 2, 3, 4]), n = 0;
+  for (var y = 0; y < ROWS; y++) for (var x = 0; x < COLS; x++) {
+    var ch = map[y].charAt(x);
+    if (ch === "P") R.hero = { x: x, y: y, fx: x, fy: y, tx: x, ty: y, moving: false, p: 0, face: 1, back: true };
+    if (/[1-4K]/.test(ch)) {
+      var boss = ch === "K", idx = boss ? rm.contents.length - 1 : parseInt(ch, 10) - 1;
+      if (idx >= rm.contents.length || (!boss && rm.boss && idx >= rm.contents.length - 1)) continue;
+      var ions = rm.contents[idx], kind = boss ? "boss" : kinds[n++ % 5];
+      R.bottles.push({ x: x, y: y, ions: ions, boss: boss, kind: kind, name: boss ? BOSS_NAME : BOTTLE_NAMES[kind], captured: false, notes: [], ruled: [], wrong: 0,
+        pool: ions.length === 2 ? salts : (rm.pool || salts), idx: R.bottles.length });
+    }
+  }
+  $("g-room").textContent = "ROOM " + (S.room + 1) + " · " + UNKNOWN_TXT[rm.kind].split(":")[0].toUpperCase();
+  paintHUD(); paintNotebook(); buildMapLayer(); Music.newRoom();
+  roomIntro();
+}
+function frame(t) {
+  var dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
+  if (S && !$("scr-game").hidden && !document.hidden) { S.secs += dt; if (Math.floor(S.secs * 2) !== Math.floor((S.secs - dt) * 2)) $("g-time").textContent = fmtTime(S.secs); }
+  if (mode === "walk" && !modalOpen && R) { update(dt); draw(); }
+  raf = requestAnimationFrame(frame);
+}
+
+/* =================== WALKING =================== */
+var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+var held = null, swipeDir = null, queued = null;   // queued: a quick tap still moves one step
+function tileAt(x, y) { if (y < 0 || y >= ROWS || x < 0 || x >= COLS) return "#"; return R.map[y].charAt(x); }
+function bottleAt(x, y) { for (var i = 0; i < R.bottles.length; i++) { var b = R.bottles[i]; if (b.x === x && b.y === y && !b.captured) return b; } return null; }
+function walkable(x, y) { var c = tileAt(x, y); return c === "." || c === "P" || (c === "D" && R.open); }
+function update(dt) {
+  R.t += dt; if (R.bumpT > 0) R.bumpT -= dt;
+  var h = R.hero;
+  if (h.moving) {
+    h.p += WALK_SPEED * dt;
+    if (h.p >= 1) {
+      h.x = h.tx; h.y = h.ty; h.moving = false; h.p = 0;
+      if (tileAt(h.x, h.y) === "D") { nextRoom(); return; }
+    }
+  }
+  if (!h.moving) {
+    var d = held || swipeDir || queued; queued = null; if (!d) return;
+    var v = DIRS[d]; h.back = d === "up"; if (v[0]) h.face = v[0];
+    var nx = h.x + v[0], ny = h.y + v[1];
+    if (walkable(nx, ny)) { h.tx = nx; h.ty = ny; h.moving = true; h.p = 0; }
+    else {
+      swipeDir = null;
+      var b = bottleAt(nx, ny);
+      if (b) { held = null; startBattle(b); return; }
+      if (R.bumpT <= 0) {
+        R.bumpT = .6; Sound.bump();
+        if (tileAt(nx, ny) === "D") toast(R.open ? "" : "The door is locked. Test every bottle in this room first!");
+      }
+    }
+  }
+}
+function heroPos() { var h = R.hero; return h.moving ? { x: h.x + (h.tx - h.x) * h.p, y: h.y + (h.ty - h.y) * h.p } : { x: h.x, y: h.y }; }
+function nextRoom() {
+  addScore(POINTS.room); Sound.door();
+  if (S.room === S.rooms.length - 1) { S.won = true; finish(); return; }
+  S.room++; startRoom();
+}
+var KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right" };
+document.addEventListener("keydown", function (e) {
+  if ($("scr-game").hidden || modalOpen || mode !== "walk") return;
+  if (KEYS[e.key]) { held = queued = KEYS[e.key]; swipeDir = null; e.preventDefault(); }
+});
+document.addEventListener("keyup", function (e) { if (KEYS[e.key] === held) held = null; });
+(function dpad() {
+  var pad = $("dpad"), cur = null;
+  function up() { if (cur) cur.classList.remove("on"); cur = null; held = null; }
+  pad.addEventListener("pointerdown", function (e) {
+    var b = e.target.closest("button[data-d]"); if (!b) return;
+    e.preventDefault(); up(); cur = b; b.classList.add("on"); held = queued = b.dataset.d; swipeDir = null;
+    try { pad.setPointerCapture(e.pointerId); } catch (x) {}
+  });
+  pad.addEventListener("pointermove", function (e) {
+    if (!cur) return; var el = document.elementFromPoint(e.clientX, e.clientY), b = el && el.closest && el.closest("button[data-d]");
+    if (b && b !== cur) { cur.classList.remove("on"); cur = b; b.classList.add("on"); held = b.dataset.d; }
+  });
+  ["pointerup", "pointercancel"].forEach(function (t) { pad.addEventListener(t, up); });
+  pad.addEventListener("touchstart", function (e) { e.preventDefault(); }, { passive: false });
+})();
+(function swipe() {
+  var st = $("stage"), sx = 0, sy = 0, down = false, moved = false;
+  st.addEventListener("pointerdown", function (e) { down = true; moved = false; sx = e.clientX; sy = e.clientY; try { st.setPointerCapture(e.pointerId); } catch (x) {} });
+  st.addEventListener("pointermove", function (e) {
+    if (!down) return; var dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+    swipeDir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"); moved = true; sx = e.clientX; sy = e.clientY;
+  });
+  st.addEventListener("pointerup", function () { if (!moved) swipeDir = null; down = false; });   // a tap stops walking
+  st.addEventListener("pointercancel", function () { down = false; });
+  st.addEventListener("touchmove", function (e) { e.preventDefault(); }, { passive: false });
+})();
+
+/* =================== MAP DRAWING =================== */
+var cv = $("cv"), ctx = cv.getContext("2d"), TILE = 32, DPR = 1, mapLayer = null;
+function resize() {
+  if ($("scr-game").hidden) return;
+  var wide = window.innerWidth >= 980;
+  var availW = wide ? Math.min(window.innerWidth - 32 - 300 - 30, 760) : Math.min(window.innerWidth - 32 - 6, 760);
+  var availH = window.innerHeight - (isTouch ? 330 : 170);
+  TILE = Math.max(14, Math.floor(Math.min(availW / COLS, Math.max(220, availH) / ROWS)));
+  DPR = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = COLS * TILE * DPR; cv.height = ROWS * TILE * DPR;
+  cv.style.width = COLS * TILE + "px"; cv.style.height = ROWS * TILE + "px";
+  if (R) buildMapLayer();
+}
+window.addEventListener("resize", resize);
+function buildMapLayer() {
+  var c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height;
+  var g = c.getContext("2d"), T = TILE * DPR, ink = "#1F2A2E", lw = Math.max(1.5, T * .07);
+  function box(x, y, w, h, fill) { g.fillStyle = fill; g.fillRect(x, y, w, h); g.lineWidth = lw; g.strokeStyle = ink; g.strokeRect(x + lw / 2, y + lw / 2, w - lw, h - lw); }
+  for (var y = 0; y < ROWS; y++) for (var x = 0; x < COLS; x++) {
+    var X = x * T, Y = y * T, ch = R.map[y].charAt(x);
+    // floor everywhere first
+    g.fillStyle = (x + y) % 2 ? "#E6F2F1" : "#DCEDEB"; g.fillRect(X, Y, T, T);
+    if (ch === "#" || ch === "T") {
+      g.fillStyle = y === 0 ? "#069494" : "#057A7A"; g.fillRect(X, Y, T, T);
+      if (y === 0) { g.fillStyle = "#0BB3B3"; g.fillRect(X, Y, T, T * .18); g.fillStyle = "#046767"; g.fillRect(X, Y + T * .86, T, T * .14); }
+      if (ch === "T") { // periodic-table poster
+        box(X + T * .1, Y + T * .18, T * .8, T * .6, "#FFFFFF");
+        var cols = ["#FF8243", "#FCE883", "#069494", "#FFC0CB"];
+        for (var i = 0; i < 4; i++) for (var j = 0; j < 3; j++) { g.fillStyle = cols[(i + j) % 4]; g.fillRect(X + T * (.18 + i * .16), Y + T * (.28 + j * .14), T * .12, T * .1); }
+      }
+    } else if (ch === "D") {
+      box(X, Y + T * .05, T, T * .95, "#7A5233");
+      g.fillStyle = "#5E3E26"; g.fillRect(X + T * .14, Y + T * .2, T * .72, T * .3);
+    } else if (ch === "B" || /[1-4K]/.test(ch)) {
+      box(X + T * .02, Y + T * .1, T * .96, T * .62, "#F7F4EC");
+      g.fillStyle = "#8A9BA0"; g.fillRect(X + T * .04, Y + T * .72, T * .92, T * .2);
+      g.fillStyle = ink; g.fillRect(X + T * .02, Y + T * .9, T * .96, lw);
+    } else if (ch === "S") {
+      box(X + T * .02, Y + T * .1, T * .96, T * .62, "#F7F4EC");
+      box(X + T * .2, Y + T * .22, T * .6, T * .38, "#B9C6C9");
+      g.fillStyle = ink; g.fillRect(X + T * .46, Y + T * .02, T * .08, T * .26);
+      g.fillStyle = "#8A9BA0"; g.fillRect(X + T * .04, Y + T * .72, T * .92, T * .2);
+    } else if (ch === "F") {
+      box(X + T * .02, Y, T * .96, T * .92, "#C9D3D6");
+      box(X + T * .12, Y + T * .1, T * .76, T * .45, "#9FD8D8");
+      g.fillStyle = "#FCE883"; g.fillRect(X + T * .1, Y + T * .66, T * .8, T * .08);
+    } else if (ch === "C") {
+      box(X + T * .02, Y + T * .02, T * .96, T * .92, "#B98A5E");
+      g.fillStyle = "#7A5233"; g.fillRect(X + T * .06, Y + T * .46, T * .88, T * .06);
+      var bc = ["#FF8243", "#069494", "#FCE883", "#FFC0CB"];
+      for (i = 0; i < 3; i++) { g.fillStyle = bc[(i + x) % 4]; g.fillRect(X + T * (.14 + i * .26), Y + T * .16, T * .14, T * .28); g.fillRect(X + T * (.14 + i * .26), Y + T * .58, T * .14, T * .28); }
+    }
+  }
+  mapLayer = c;
+}
+function drawImg(img, cx, bottomY, h, flip) {
+  var T = TILE * DPR, ih = h * T, iw = ih * ((img.naturalWidth || img.width) / (img.naturalHeight || img.height));
+  ctx.save(); ctx.imageSmoothingEnabled = img.tagName === "IMG" && (img.naturalWidth || 0) > 120; ctx.translate(cx * T, bottomY * T);
+  if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(img, -iw / 2, -ih, iw, ih); ctx.restore();
+}
+function draw() {
+  if (!mapLayer) return;
+  var T = TILE * DPR;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(mapLayer, 0, 0);
+  // open door
+  if (R.open) for (var x = 0; x < COLS; x++) if (R.map[0].charAt(x) === "D") { ctx.fillStyle = "#1F2A2E"; ctx.fillRect(x * T + T * .08, T * .12, T * .84, T * .88); ctx.fillStyle = "#FCE883"; ctx.font = "bold " + (T * .5) + "px sans-serif"; ctx.textAlign = "center"; ctx.fillText("▲", x * T + T / 2, T * .7); }
+  // bottles
+  R.bottles.forEach(function (b) {
+    if (b.captured) return;
+    var bob = Math.sin(R.t * 3 + b.idx) * .04;
+    drawImg(bottleSprite(b.kind), b.x + .5, b.y + .62 + bob, b.boss ? 1.25 : .9, false);
+    if (!b.boss) { ctx.fillStyle = "#1F2A2E"; ctx.font = "bold " + (T * .32) + "px sans-serif"; ctx.textAlign = "center"; }
+  });
+  // hero
+  var p = heroPos(), h = R.hero, hop = h.moving ? Math.abs(Math.sin(h.p * Math.PI)) * .08 : 0;
+  ctx.fillStyle = "rgba(31,42,46,.18)"; ctx.beginPath(); ctx.ellipse((p.x + .5) * T, (p.y + .92) * T, T * .3, T * .1, 0, 0, 7); ctx.fill();
+  drawImg(heroSprite(h.back), p.x + .5, p.y + .95 - hop, 1.35, !h.back && h.face < 0);
+}
+
+/* =================== BATTLE =================== */
+var B = null;
+function setMode(m) {
+  mode = m;
+  $("stage").hidden = m !== "walk"; $("dpad").style.visibility = m === "walk" ? "" : "hidden";
+  $("battle").hidden = m !== "battle";
+}
+function startBattle(b) {
+  Sound.encounter(); Music.battle();
+  B = { b: b, sel: {}, busy: false };
+  setMode("battle");
+  var fs = $("foe-sp"); fs.innerHTML = ""; fs.className = "foe-sp" + (b.boss ? " boss" : ""); fs.appendChild(spriteEl(bottleSprite(b.kind)));
+  var ms = $("me-sp"); ms.innerHTML = ""; ms.appendChild(spriteEl(heroSprite(true)));
+  paintInfo(); buildTube((b.ions.length && SOL[catOf(b.ions)]) || COL.clear);
+  say((b.boss ? "The boss <b>" + b.name + "</b> blocks the door!" : "An unlabelled <b>" + b.name + "</b> appeared!") +
+      '<span class="hint">' + (b.ions.length === 2 ? "It hides a cation AND an anion." : "It hides one ion. " + (S.rooms[S.room].kind === "m" ? "Cation or anion?" : "")) + "</span>");
+  mainMenu();
+  $("battle").scrollIntoView({ block: "nearest" });
+}
+function paintInfo() {
+  var b = B.b;
+  $("foe-info").innerHTML = b.name + (b.boss ? " ★" : "") + "<small>" + (b.ions.length === 2 ? "Salt · 2 unknown ions" : "1 unknown ion") + " · tests: " + b.notes.length + "</small>";
+  $("me-info").innerHTML = "YOU<small>HP</small><span class=\"hearts\">" + heartsHTML(S.hp, HP_PER_ROOM) + "</span>";
+}
+function say(html) { $("btext").innerHTML = html; }
+function mainMenu() {
+  $("bctl").innerHTML = '<div class="bmenu">' +
+    '<button class="btn teal" type="button" data-a="test">⚗️ TEST</button>' +
+    '<button class="btn yellow" type="button" data-a="name">✏️ NAME IT</button>' +
+    '<button class="btn alt" type="button" data-a="notes">📓 NOTES</button>' +
+    '<button class="btn alt" type="button" data-a="run">🏃 RUN</button></div>';
+}
+$("bctl").addEventListener("click", function (e) {
+  var btn = e.target.closest("button"); if (!btn || btn.disabled || !B || B.busy) return;
+  var a = btn.dataset.a;
+  if (btn.dataset.k) { B.sel[btn.dataset.k] = !B.sel[btn.dataset.k]; Sound.tap(); testMenu(); return; }
+  if (btn.dataset.ion) { pickIon(btn.dataset.ion); return; }
+  if (a === "test") { B.sel = {}; testMenu(); }
+  else if (a === "go") runTest();
+  else if (a === "name") { B.pick = { c: null, a: null }; nameMenu(); }
+  else if (a === "confirm") confirmName();
+  else if (a === "notes") showNotes();
+  else if (a === "back") { mainMenu(); }
+  else if (a === "run") endBattle(false);
+});
+function testMenu() {
+  var s = B.sel, err = checkPlan(s), any = Object.keys(s).some(function (k) { return s[k]; });
+  var tog = function (k, label, col) { return '<button type="button" class="tog" data-k="' + k + '" aria-pressed="' + !!s[k] + '">' + (col ? '<i style="background:' + col + '"></i>' : "") + "<span>" + label + "</span></button>"; };
+  $("bctl").innerHTML = '<div class="mlabel">REAGENTS</div><div class="pick">' + courseReagents().map(function (r) { return tog(r.k, r.html, r.col); }).join("") + "</div>" +
+    '<div class="mlabel" style="margin-top:8px">EXTRAS</div><div class="pick">' + EXTRAS.map(function (x) { return tog(x.k, x.html); }).join("") + "</div>" +
+    '<p class="merr">' + (any ? err : "") + '</p><div class="row-btns"><button class="btn teal pix" type="button" data-a="go"' + (!any || err ? " disabled" : "") + '>ADD ▶</button><button class="btn alt" type="button" data-a="back">Back</button></div>';
+}
+async function runTest() {
+  var b = B.b, s = B.sel, res = react(b.ions, s), eff = effectiveness(b, s, res), m = methodHTML(s);
+  B.busy = true; S.tests++; if (eff === "super") S.superTests++;
+  $("bctl").innerHTML = "";
+  say("You added " + m + "…");
+  await playSteps(res);
+  var label = eff === "super" ? '<span class="eff super">IT\'S SUPER EFFECTIVE!</span>' : eff === "weak" ? '<span class="eff weak">IT\'S NOT VERY EFFECTIVE…</span>' : '<span class="eff none">IT HAD NO EFFECT.</span>';
+  (eff === "super" ? Sound.superE : eff === "weak" ? Sound.weak : Sound.none).call(Sound);
+  if (eff === "super") { $("foe-sp").classList.remove("flash"); void $("foe-sp").offsetWidth; $("foe-sp").classList.add("flash"); }
+  say(label + '<span class="obs">' + esc(cap1(res.text)) + ".</span>" + (res.hint ? '<span class="hint">' + esc(res.hint) + "</span>" : ""));
+  b.notes.push({ m: m, mt: methodHTML(s, true), o: res.text, eff: eff });
+  paintNotebook(); paintInfo();
+  B.busy = false; mainMenu();
+}
+function cap1(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+function showNotes() {
+  var b = B.b;
+  say(b.notes.length || b.ruled.length ? "<b>Notes on " + b.name + ":</b><br>" + b.notes.map(function (n) { return "• " + n.m + ": <b>" + esc(n.o) + "</b>"; }).join("<br>") +
+      (b.ruled.length ? "<br>✗ Not " + b.ruled.map(function (k) { return ION[k].html; }).join(", not ") : "") : "No notes yet. Try a test!");
+}
+function nameMenu() {
+  var b = B.b, salt = b.ions.length === 2, room = S.rooms[S.room];
+  var list = function (keys, part) {
+    return '<div class="ions">' + keys.map(function (k) {
+      var on = salt ? B.pick[part] === k : false;
+      return '<button type="button" data-ion="' + k + '" aria-pressed="' + on + '"' + (b.ruled.indexOf(k) > -1 ? ' class="ruled"' : "") + ">" + ION[k].html + "<small>" + ION[k].name + "</small></button>";
+    }).join("") + "</div>";
+  };
+  var h;
+  if (salt) {
+    h = '<div class="mlabel">CATION</div>' + list(courseIons(CATIONS), "c") + '<div class="mlabel" style="margin-top:8px">ANION</div>' + list(ANIONS, "a") +
+        '<div class="row-btns" style="margin-top:8px"><button class="btn yellow pix" type="button" data-a="confirm"' + (B.pick.c && B.pick.a ? "" : " disabled") + '>NAME IT ▶</button><button class="btn alt" type="button" data-a="back">Back</button></div>';
+  } else {
+    var keys = room.kind === "c" ? courseIons(CATIONS) : room.kind === "a" ? ANIONS : courseIons(CATIONS).concat(ANIONS);
+    h = '<div class="mlabel">WHICH ION IS IT?</div>' + list(keys) + '<div class="row-btns" style="margin-top:8px"><button class="btn alt" type="button" data-a="back">Back</button></div>';
+  }
+  $("bctl").innerHTML = h;
+}
+function pickIon(k) {
+  var b = B.b; Sound.tap();
+  if (b.ions.length === 2) { B.pick[ION[k].t === "c" ? "c" : "a"] = k; nameMenu(); }
+  else { B.pick = { one: k }; confirmName(); }
+}
+async function confirmName() {
+  var b = B.b, guess = b.ions.length === 2 ? [B.pick.c, B.pick.a] : [B.pick.one];
+  var ok = guess.every(function (k, i) { return k === b.ions[i]; });
+  S.guesses.push({ room: S.room + 1, actual: b.ions.slice(), guess: guess, ok: ok, tests: b.notes.length, clue: b.notes.map(function (n) { return n.mt + ": " + n.o; }).join(" | ") || "(no tests)" });
+  B.busy = true; $("bctl").innerHTML = "";
+  if (ok) {
+    Sound.capture();
+    var pts = (b.boss ? POINTS.boss : POINTS.capture) + (b.wrong ? 0 : POINTS.firstTry);
+    addScore(pts); b.captured = true; S.captured++;
+    b.ions.forEach(function (k) { S.dex[k] = true; });
+    $("foe-sp").classList.add("caught");
+    say('<span class="eff super">GOTCHA!</span>' + b.name + " was hiding <b>" + ionsName(b.ions) + ", " + ionsHTML(b.ions) + "</b>! Added to your Lab-dex. <b>+" + pts + "</b>" +
+        '<span class="hint">' + b.ions.map(function (k) { return esc(KEY_TEST[k]); }).join("<br>") + "</span>");
+    paintNotebook();
+    $("bctl").innerHTML = '<div class="row-btns"><button class="btn teal pix" type="button" data-a="run">CONTINUE ▶</button></div>';
+    B.busy = false;
+    B.won = true;
+  } else {
+    Sound.hurt(); S.hp--; b.wrong++;
+    var msg;
+    if (b.ions.length === 2) {
+      var cOk = guess[0] === b.ions[0], aOk = guess[1] === b.ions[1];
+      if (!cOk) b.ruled.push(guess[0]); if (!aOk) b.ruled.push(guess[1]);
+      msg = cOk ? "The cation is right, but the anion isn't " + ION[guess[1]].html + "." : aOk ? "The anion is right, but the cation isn't " + ION[guess[0]].html + "." : "Neither " + ION[guess[0]].html + " nor " + ION[guess[1]].html + " is right.";
+    } else { b.ruled.push(guess[0]); msg = "It's not " + ION[guess[0]].html + "."; }
+    $("arena").classList.remove("shake"); void $("arena").offsetWidth; $("arena").classList.add("shake");
+    paintInfo(); paintHUD(); paintNotebook();
+    say('<span class="eff bad">' + b.name + " SPLASHED YOU! −1 HP</span>" + msg + (S.hp > 0 ? '<span class="hint">Run more tests, then try again.</span>' : ""));
+    await wait(900);
+    B.busy = false;
+    if (S.hp <= 0) { faint(); return; }
+    mainMenu();
+  }
+}
+function endBattle() {
+  var won = B && B.won; B = null;
+  setMode("walk"); Music.backToWalk();
+  held = null; swipeDir = null; queued = null;
+  if (won && R.bottles.every(function (b) { return b.captured; })) { R.open = true; Sound.door(); toast("All bottles tested! The door is open ▲"); }
+  paintNotebook();
+}
+function faint() {
+  Music.stop(); Sound.lose();
+  openModal('<h2 id="m-title" class="bad">YOU FAINTED!</h2><p>Out of HP in room ' + (S.room + 1) + ". Let's see how you did.</p>" +
+    '<div class="row-btns"><button class="btn teal pix" type="button" data-m="results">SEE RESULTS ▶</button></div>', function (a) { if (a === "results") { closeModal(); finish(); } });
+}
+
+/* =================== TEST TUBE ANIMATION =================== */
+var TT = {};
+function buildTube(solCol) {
+  var NS = "http://www.w3.org/2000/svg";
+  var svg = '<svg viewBox="0 0 200 240" aria-hidden="true">' +
+    '<defs><clipPath id="tclip"><path d="M72 46 V196 a28 28 0 0 0 56 0 V46 Z"/></clipPath></defs>' +
+    // limewater side tube (hidden until used)
+    '<g id="t-lime" opacity="0"><path d="M100 40 V22 H172 V120" fill="none" stroke="#1F2A2E" stroke-width="4"/>' +
+    '<path d="M158 110 V200 a14 14 0 0 0 28 0 V110" fill="#EAF6FF" stroke="#1F2A2E" stroke-width="4"/><rect id="t-limeliq" x="160" y="150" width="24" height="62" fill="#EAF6FF" opacity="1"/></g>' +
+    // flame
+    '<g id="t-flame" opacity="0"><path d="M100 236 C86 222 92 214 100 204 C108 214 114 222 100 236 Z" fill="#FF8243" stroke="#1F2A2E" stroke-width="3"/><path d="M100 232 C94 225 97 220 100 214 C103 220 106 225 100 232 Z" fill="#FCE883"/></g>' +
+    // liquid
+    '<g clip-path="url(#tclip)"><rect id="t-liq" x="60" y="118" width="80" height="120" fill="' + solCol + '"/>' +
+    '<rect id="t-brown" x="60" y="118" width="80" height="18" fill="#9A3B1E" opacity="0"/><g id="t-ppt"></g><g id="t-bub"></g>' +
+    '<rect id="t-foil" x="90" y="196" width="18" height="10" fill="#B9C6C9" stroke="#1F2A2E" stroke-width="2" opacity="0"/></g>' +
+    // tube outline + shine
+    '<path d="M72 40 V196 a28 28 0 0 0 56 0 V40" fill="none" stroke="#1F2A2E" stroke-width="5"/><path d="M66 40 H134" stroke="#1F2A2E" stroke-width="5" stroke-linecap="round"/>' +
+    '<rect x="80" y="56" width="6" height="120" rx="3" fill="#FFFFFF" opacity=".75"/>' +
+    // dropper
+    '<g id="t-drop" opacity="0"><rect x="92" y="-30" width="16" height="22" rx="6" fill="#E2463A" stroke="#1F2A2E" stroke-width="3"/><path d="M95 -8 H105 L102 20 H98 Z" fill="#E8F7F7" stroke="#1F2A2E" stroke-width="3"/><circle id="t-dot" cx="100" cy="24" r="5" fill="#4FA8FF" stroke="#1F2A2E" stroke-width="2"/></g>' +
+    // litmus
+    '<g id="t-litmus" opacity="0"><rect x="122" y="-4" width="14" height="40" fill="#FF6B7A" stroke="#1F2A2E" stroke-width="3" id="t-litpaper"/></g>' +
+    // splint
+    '<g id="t-splint" opacity="0"><path d="M30 -10 L88 36" stroke="#B98A5E" stroke-width="6" stroke-linecap="round"/><path id="t-splintflame" d="M88 36 c-8 -6 -4 -16 4 -22 c2 8 10 12 4 22 z" fill="#FF8243" stroke="#1F2A2E" stroke-width="2"/></g>' +
+    '<g id="t-gas"></g></svg><div class="tcap" id="t-cap" hidden></div>';
+  $("tube-wrap").innerHTML = svg;
+  TT = { liq: $("t-liq"), ppt: $("t-ppt"), bub: $("t-bub"), drop: $("t-drop"), dot: $("t-dot"), foil: $("t-foil"), flame: $("t-flame"), brown: $("t-brown"),
+         litmus: $("t-litmus"), lit: $("t-litpaper"), lime: $("t-lime"), limeliq: $("t-limeliq"), splint: $("t-splint"), sflame: $("t-splintflame"), gas: $("t-gas"), cap: $("t-cap"), NS: NS, sol: solCol };
+  [TT.liq, TT.drop, TT.foil, TT.flame, TT.brown, TT.litmus, TT.lit, TT.lime, TT.limeliq, TT.splint, TT.sflame].forEach(function (el) { el.style.transition = "opacity .5s, fill .8s"; });
+}
+function svgEl(tag, attrs) { var e = document.createElementNS(TT.NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+async function dropDrops(col, n) {
+  TT.drop.style.opacity = 1; TT.dot.setAttribute("fill", col);
+  for (var i = 0; i < n; i++) {
+    var d = svgEl("circle", { cx: 100, cy: 24, r: 5, fill: col, stroke: "#1F2A2E", "stroke-width": 2 }); TT.gas.appendChild(d);
+    d.style.transition = "transform .35s ease-in"; await wait(30); d.style.transform = "translateY(94px)"; Sound.drip();
+    await wait(360); d.remove();
+  }
+  TT.drop.style.opacity = 0; await wait(150);
+}
+function makePpt(col) {
+  TT.ppt.innerHTML = "";
+  for (var i = 0; i < 46; i++) {
+    var c = svgEl("circle", { cx: 76 + Math.random() * 48, cy: 124 + Math.random() * 96, r: 2.5 + Math.random() * 3.5, fill: col, stroke: "rgba(31,42,46,.35)", "stroke-width": 1 });
+    c.style.transition = "opacity .9s, transform 2.2s ease-out"; c.style.opacity = 0; TT.ppt.appendChild(c);
+  }
+  void TT.ppt.getBoundingClientRect();
+  Array.prototype.forEach.call(TT.ppt.childNodes, function (c, i) { setTimeout(function () { c.style.opacity = 1; c.style.transform = "translateY(" + (8 + Math.random() * 14) + "px)"; }, i * 12); });
+}
+async function bubbles(ms, intoLime) {
+  var end = performance.now() + ms;
+  Sound.fizz();
+  while (performance.now() < end) {
+    var b = svgEl("circle", { cx: 80 + Math.random() * 40, cy: 220, r: 2 + Math.random() * 3, fill: "#FFFFFF", stroke: "#1F2A2E", "stroke-width": 1 });
+    b.style.transition = "transform .9s linear, opacity .9s"; TT.bub.appendChild(b);
+    (function (b) { setTimeout(function () { b.style.transform = "translateY(-100px)"; }, 20); setTimeout(function () { b.remove(); }, 950); })(b);
+    if (intoLime && Math.random() < .3) {
+      var l = svgEl("circle", { cx: 172, cy: 205, r: 2.5, fill: "#FFFFFF", stroke: "#1F2A2E", "stroke-width": 1 }); l.style.transition = "transform .8s linear"; TT.lime.appendChild(l);
+      (function (l) { setTimeout(function () { l.style.transform = "translateY(-50px)"; }, 20); setTimeout(function () { l.remove(); }, 850); })(l);
+    }
+    await wait(70);
+  }
+}
+async function wisps(ms) {
+  var end = performance.now() + ms;
+  while (performance.now() < end) {
+    var w = svgEl("circle", { cx: 92 + Math.random() * 16, cy: 36, r: 5 + Math.random() * 4, fill: "rgba(200,210,215,.75)" });
+    w.style.transition = "transform 1.4s ease-out, opacity 1.4s"; TT.gas.appendChild(w);
+    (function (w) { setTimeout(function () { w.style.transform = "translate(" + (Math.random() * 30 - 5) + "px,-60px) scale(1.6)"; w.style.opacity = 0; }, 20); setTimeout(function () { w.remove(); }, 1500); })(w);
+    await wait(140);
+  }
+}
+async function playSteps(res) {
+  buildTube(res.start);
+  for (var i = 0; i < res.steps.length; i++) {
+    var st = res.steps[i];
+    TT.cap.innerHTML = st.cap; TT.cap.hidden = false;
+    if (st.foil) { TT.foil.style.opacity = 1; await wait(300); }
+    if (st.litmus) { TT.litmus.style.opacity = 1; }
+    if (st.splint) { TT.splint.style.opacity = 1; }
+    if (st.lime) { TT.lime.style.opacity = 1; await wait(250); }
+    if (st.drops) await dropDrops(st.drops, i === 0 ? 3 : 4);
+    if (st.ppt) { makePpt(st.ppt); await wait(900); }
+    if (st.sol) { TT.liq.style.fill = st.sol; await wait(500); }
+    if (st.pptOut) { Array.prototype.forEach.call(TT.ppt.childNodes, function (c) { c.style.opacity = 0; }); await wait(900); }
+    if (st.brownTop) { await wait(400); TT.brown.style.opacity = .85; Array.prototype.forEach.call(TT.ppt.childNodes, function (c) { if (parseFloat(c.getAttribute("cy")) < 150) c.setAttribute("fill", COL.rbrown); }); await wait(900); }
+    if (st.fizz) { await bubbles(1500, st.lime === "milky"); if (st.lime === "milky") { TT.limeliq.style.fill = "#FFFFFF"; TT.limeliq.style.opacity = .95; await wait(700); } if (st.splint === "out") { TT.sflame.style.opacity = 0; await wait(500); } }
+    else if (st.lime) await wait(600);
+    if (st.warm) {
+      TT.flame.style.opacity = 1; await wait(700);
+      if (st.gas) { await Promise.all([bubbles(900), wisps(1600)]); }
+      else await wait(900);
+      if (st.litmus === "blue") { TT.lit.style.fill = "#4FA8FF"; await wait(800); }
+      else if (st.litmus) await wait(500);
+    } else if (st.litmus || st.splint) await wait(900);
+    await wait(250);
+  }
+  TT.cap.hidden = true;
+}
+
+/* =================== PANELS / HUD =================== */
+function paintHUD() { $("g-hp").innerHTML = heartsHTML(S.hp, HP_PER_ROOM); $("g-score").textContent = S.score; }
+function addScore(n) { S.score += n; $("g-score").textContent = S.score; }
+function paintNotebook() {
+  if (!R) return;
+  var any = R.bottles.some(function (b) { return b.notes.length || b.ruled.length || b.captured; });
+  $("notebook").innerHTML = (any ? "" : '<p class="nb-empty">Your test results for each bottle in this room will appear here.</p>') + R.bottles.map(function (b) {
+    return '<div class="nb-b"><b>' + esc(b.name) + (b.boss ? " ★" : "") + (b.captured ? '<span class="ok">✓ ' + ionsHTML(b.ions) + "</span>" : "") + "</b>" +
+      (b.notes.length || b.ruled.length ? "<ul>" + b.notes.map(function (n) { return "<li>" + n.m + ": <em>" + esc(n.o) + "</em></li>"; }).join("") +
+        b.ruled.map(function (k) { return '<li class="x">✗ not ' + ION[k].html + "</li>"; }).join("") + "</ul>" : "") + "</div>";
+  }).join("");
+}
+var toastT = 0;
+function toast(t) { if (!t) return; var el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { el.hidden = true; }, 2200); }
+
+/* =================== MODALS =================== */
+var modalCb = null;
+function openModal(html, cb) { modalOpen = true; $("mbox").innerHTML = html; $("modal").hidden = false; modalCb = cb || null; held = null; swipeDir = null; queued = null; }
+function closeModal() { modalOpen = false; $("modal").hidden = true; modalCb = null; if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); }
+$("mbox").addEventListener("click", function (e) { var b = e.target.closest("button[data-m]"); if (b && modalCb) modalCb(b.dataset.m); });
+$("modal").addEventListener("click", function (e) { if (e.target === this && modalCb) modalCb("close"); });
+function roomIntro() {
+  var rm = S.rooms[S.room], n = rm.contents.length;
+  openModal('<h2 id="m-title">ROOM ' + (S.room + 1) + " · " + rm.name + "</h2>" +
+    '<div class="unknowns"><span>THE UNKNOWNS</span><b>' + UNKNOWN_TXT[rm.kind] + "</b></div>" +
+    "<p>" + (rm.boss ? (n - 1) + " bottles and a <b>boss</b> guarding the door." : n + " bottles to test.") + " Capture them all to open the door. You have " + HP_PER_ROOM + " HP.</p>" +
+    '<div class="tip">' + rm.tip + "</div>" +
+    (S.room === 0 ? '<p class="muted">' + (isTouch ? "Walk with the arrow pad or swipe on the map." : "Walk with the arrow keys or WASD.") + " Bump into a bottle to battle it. In battle: <b>Test</b> adds reagents (as many tests as you like), <b>Name it</b> captures the bottle, and a wrong name costs 1 HP.</p>" : "") +
+    '<div class="row-btns"><button class="btn teal pix" type="button" data-m="go">START ▶</button></div>', function (a) { if (a === "go") closeModal(); });
+}
+function openDex() {
+  var all = courseIons(CATIONS).concat(ANIONS), got = all.filter(function (k) { return S && S.dex[k]; }).length;
+  openModal('<h2 id="m-title">LAB-DEX · ' + got + "/" + all.length + "</h2>" +
+    '<div class="dex">' + all.map(function (k) {
+      var g = S && S.dex[k];
+      return '<div class="dex-c ' + (g ? "got" : "locked") + '"><small>' + (ION[k].t === "c" ? "CATION" : "ANION") + "</small><b>" + (g ? ION[k].html : "???") + "</b>" + (g ? ION[k].name + "<br>" + esc(KEY_TEST[k]) : "Not captured yet") + "</div>";
+    }).join("") + '</div><div class="row-btns"><button class="btn alt" type="button" data-m="close">Close</button></div>', function () { closeModal(); });
+}
+$("btn-dex").addEventListener("click", openDex);
+$("btn-dex2").addEventListener("click", openDex);
+
+/* =================== RESULTS =================== */
+function finish() {
+  endLoop(); Music.stop(); setMode("walk");
+  var gs = S.guesses, correct = gs.filter(function (g) { return g.ok; }).length, total = gs.length, acc = total ? Math.round(correct / total * 100) : 0;
+  S.acc = acc; S.correct = correct; S.total = total;
+  var best = load("best", {}); if (best[S.lv] == null || S.score > best[S.lv]) { best[S.lv] = S.score; store("best", best); }
+  show("scr-result");
+  var lvName = S.lv === "hard" ? "Pure Chemistry" : "Combined Science";
+  $("res-title").textContent = S.won ? "You tested 'em all!" : acc >= 70 ? "Sharp observations!" : "Keep testing!";
+  $("res-sub").textContent = lvName + " · " + (S.won ? "All 4 rooms cleared" : "Reached room " + (S.room + 1)) + " · " + S.tests + " tests (" + S.superTests + " super effective)";
+  $("res-ring").style.setProperty("--p", acc); $("res-pct").textContent = acc + "%";
+  $("res-score").textContent = S.score; $("res-acc").textContent = acc + "%"; $("res-time").textContent = fmtTime(S.secs); $("res-bottles").textContent = S.captured;
+  var mis = misidentified();
+  $("res-weak").innerHTML = mis.length ? mis.slice(0, 4).map(function (m) {
+    return "<li><b>" + ION[m.ion].html + " (" + ION[m.ion].name + ") · mixed up " + m.n + "×</b><span>You guessed " + m.as.map(function (a) { return ION[a].html; }).join(", ") + ". " + esc(KEY_TEST[m.ion]) + "</span></li>";
+  }).join("") : '<li class="good"><b>No mix-ups!</b><span>Every name you gave was right.</span></li>';
+  $("res-review").innerHTML = gs.length ? gs.map(function (g) {
+    return "<li>" + (g.ok ? '<span class="key">✓ ' + ionsHTML(g.actual) + "</span>" : '<span class="you">✗ ' + ionsHTML(g.guess) + '</span> → it was <span class="key">' + ionsHTML(g.actual) + "</span>") +
+      ' <span class="st">Room ' + g.room + " · " + g.tests + " test" + (g.tests === 1 ? "" : "s") + "</span></li>";
+  }).join("") : '<li class="st">No names given.</li>';
+  if (S.won || acc >= 70) Confetti.go();
+  sendResults();
+}
+function misidentified() {
+  var m = {};
+  S.guesses.forEach(function (g) {
+    if (g.ok) return;
+    g.actual.forEach(function (k, i) { if (g.guess[i] === k) return; var e = m[k] = m[k] || { ion: k, n: 0, as: [] }; e.n++; if (e.as.indexOf(g.guess[i]) < 0) e.as.push(g.guess[i]); });
+  });
+  return Object.keys(m).map(function (k) { return m[k]; }).sort(function (a, b) { return b.n - a.n; });
+}
+function buildPayload() {
+  var lvName = S.lv === "hard" ? "Pure Chemistry" : "Combined Science", mis = misidentified();
+  var misTxt = mis.length ? mis.map(function (m) { return ION[m.ion].txt + " x" + m.n; }).join(", ") : "none";
+  var wrong = S.guesses.filter(function (g) { return !g.ok; }).map(function (g) { return ionsTxt(g.actual) + " named as " + ionsTxt(g.guess) + " (Room " + g.room + "; " + g.clue + ")"; }).join(" | ");
+  var summary = "Level: " + lvName + " | Result: " + (S.won ? "Cleared all 4 rooms" : "Fainted in room " + (S.room + 1)) + " | Accuracy: " + S.acc + "% | Bottles captured: " + S.captured +
+    " | Tests run: " + S.tests + " (" + S.superTests + " super effective) | Lab-dex: " + Object.keys(S.dex).length + " ions | Most misidentified: " + misTxt;
+  return { course: SHEET_TAB, chapter: "Qualitative analysis · Gotta Test 'Em All · " + lvName, name: S.student.name, cls: S.student.cls, reg: S.student.reg,
+           score: S.correct, total: S.total, wrong: wrong || "None", time: Math.round(S.secs), points: S.score, summary: summary };
+}
+function post(payload) { return fetch(SUBMIT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) }); }
+function sendResults() {
+  var payload = G.payload = buildPayload(), box = $("send"), msg = $("send-msg"), btn = $("btn-resend");
+  box.className = "send span"; btn.hidden = true;
+  if (!SUBMIT_URL) { msg.textContent = "Results not sent (no Google Sheet link set up)."; return; }
+  msg.textContent = "Sending your results to Ms Khoo…";
+  post(payload).then(function () { msg.textContent = "✓ Sent! Ms Khoo has your results."; })
+    .catch(function () { box.className = "send span err"; msg.textContent = "Couldn't send. Check your internet, then tap Try again."; btn.hidden = false; });
+}
+$("btn-resend").addEventListener("click", function () {
+  var box = $("send"); $("btn-resend").hidden = true; $("send-msg").textContent = "Sending…";
+  post(G.payload).then(function () { box.className = "send span"; $("send-msg").textContent = "✓ Sent! Ms Khoo has your results."; })
+    .catch(function () { $("send-msg").textContent = "Still couldn't send. Try again when you're online."; $("btn-resend").hidden = false; });
+});
+$("btn-again").addEventListener("click", function () { Confetti.stop(); startGame(S.student); });
+$("btn-home").addEventListener("click", function () { Confetti.stop(); show("scr-start"); paintStart(); });
+
+if (location.hash === "#debug") window.__T = { S: function () { return S; }, R: function () { return R; }, B: function () { return B; }, react: react, saltPool: saltPool, effectiveness: effectiveness, startBattle: startBattle, finish: finish, nextRoom: nextRoom };
+
+/* =================== CONFETTI =================== */
+var Confetti = {
+  c: $("confetti"), p: [], on: false,
+  go: function () {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var c = this.c, w = c.width = innerWidth, h = c.height = innerHeight, cols = ["#FF8243", "#FFC0CB", "#FCE883", "#069494", "#1F2A2E"];
+    c.hidden = false; this.on = true; this.p = [];
+    for (var i = 0; i < 110; i++) this.p.push({ x: Math.random() * w, y: -Math.random() * h, s: 6 + Math.random() * 8, v: 2 + Math.random() * 3, a: Math.random() * 6, col: cols[i % cols.length] });
+    var self = this, cx = c.getContext("2d"), t0 = performance.now();
+    (function fr(t) { if (!self.on) return; cx.clearRect(0, 0, w, h); self.p.forEach(function (p) { p.y += p.v; p.a += .1; cx.fillStyle = p.col; cx.fillRect(p.x + Math.sin(p.a) * 6, p.y, p.s, p.s * .6); }); if (t - t0 < 4000) requestAnimationFrame(fr); else self.stop(); })(t0);
+  },
+  stop: function () { this.on = false; this.c.hidden = true; }
+};
+})();
+</script>
+</body>
+</html>
