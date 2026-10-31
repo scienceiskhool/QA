@@ -201,6 +201,92 @@ body.touch .dpad { display: grid; }
 @media (min-width: 760px) { .results { grid-template-columns: 1fr 1fr; align-items: start; } .results .span { grid-column: 1 / -1; } }
 @media (max-width: 480px) { .stats { grid-template-columns: repeat(2, 1fr); } .res-hero { flex-direction: column; text-align: center; } }
 
+/* ---------- final boss (dark retro arena, like Ionic Quest) ---------- */
+:root { --night: #0D0B1A; --night-2: #19152E; --night-3: #2A2448; --neon-teal: #2EF2E0; --neon-pink: #FF7FB0; --neon-yellow: #FCE883; --neon-orange: #FF8243; --neon-red: #FF4D5E; }
+body.dark { background: var(--night); }
+body.dark .topbar { background: var(--night); border-bottom-color: var(--night-3); }
+body.dark .topbar .brand, body.dark .topbar .brand small { color: #fff; }
+body.dark .icon-btn { background: var(--night-2); border-color: var(--neon-teal); color: var(--neon-teal); box-shadow: 0 3px 0 var(--neon-teal); }
+body.dark footer { color: #8C86A8; } body.dark footer a { color: var(--neon-teal); }
+.fb { display: flex; flex-direction: column; gap: 14px; color: #fff; margin-block: 4px 16px; width: 100%; max-width: 820px; align-self: center; }
+.fb-arena { border: 3px solid var(--neon-teal); border-radius: 6px; background: var(--night-2); box-shadow: 0 0 0 3px var(--night), 0 0 22px rgba(46,242,224,.35); overflow: hidden; position: relative; }
+.fb-arena::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 2px, transparent 2px 4px); }
+.fb-hud { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 12px 0; font-family: var(--pixel); font-size: .6rem; line-height: 1.6; position: relative; z-index: 2; }
+.fb-who { display: flex; flex-direction: column; gap: 6px; min-width: 0; } .fb-who.boss-side { align-items: flex-end; text-align: right; flex: 1; }
+.fb-hearts { display: flex; gap: 4px; } .fb-hearts svg { width: 22px; height: 20px; } .fb-hearts .lost { opacity: .22; }
+.fb-hearts .breaking { animation: heartbreak .6s; } @keyframes heartbreak { 40% { transform: scale(1.5) rotate(-12deg); } }
+.fb-hpbar { width: min(220px, 100%); height: 16px; border: 3px solid #fff; background: var(--night); padding: 2px; }
+.fb-hpbar i { display: block; height: 100%; background: var(--neon-pink); width: 100%; transition: width .45s steps(8); } .fb-hpbar i.low { background: var(--neon-red); }
+.fb-bname { color: var(--neon-pink); } .fb-hname { color: var(--neon-teal); }
+.fb-stage { position: relative; height: 220px; display: flex; justify-content: space-between; align-items: flex-end; padding: 0 6% 18px; }
+.fb-stage::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 46px; background: repeating-linear-gradient(90deg, rgba(46,242,224,.35) 0 2px, transparent 2px 40px), linear-gradient(var(--night-3), var(--night)); border-top: 2px solid var(--neon-teal); }
+.fb-stars { position: absolute; inset: 0; background-image: radial-gradient(1.5px 1.5px at 12% 20%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 38% 12%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 62% 28%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 84% 10%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 92% 34%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 24% 40%, #fff 50%, transparent 51%); opacity: .7; }
+.fb-sp { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: center; }
+.fb-sp img, .fb-sp canvas { height: 100%; width: auto; max-width: 100%; object-fit: contain; image-rendering: pixelated; }
+.fb-sp.me { width: 110px; height: 128px; animation: fbbob 1s steps(2) infinite; }
+.fb-sp.foe { width: 150px; height: 200px; animation: fbbob 1.4s steps(2) infinite; filter: drop-shadow(0 0 12px rgba(255,127,176,.55)); }
+@keyframes fbbob { 50% { transform: translateY(-4px); } }
+.fb-sp.atk-r { animation: lunge-r .45s steps(4); } .fb-sp.atk-l { animation: lunge-l .5s steps(4); }
+@keyframes lunge-r { 50% { transform: translateX(40px); } } @keyframes lunge-l { 50% { transform: translateX(-60px) scale(1.08); } }
+.fb-sp.hit { animation: fbhit .5s steps(2); }
+@keyframes fbhit { 0%,50% { filter: brightness(3) saturate(0); transform: translateX(6px); } 25%,75% { filter: none; transform: translateX(-6px); } }
+.fb-sp.dead { animation: none; opacity: .25; filter: grayscale(1); transform: translateY(16px) rotate(8deg); transition: all .8s steps(6); }
+.fb-bolt { position: absolute; left: 22%; bottom: 80px; width: 26px; height: 26px; z-index: 3; opacity: 0; border-radius: 50%; background: radial-gradient(circle, #fff 20%, var(--neon-yellow) 45%, var(--neon-orange) 70%); box-shadow: 0 0 12px var(--neon-yellow); }
+.fb-bolt.fly { animation: fly .45s steps(6) forwards; }
+@keyframes fly { 0% { opacity: 1; left: 22%; } 90% { opacity: 1; } 100% { opacity: 0; left: 68%; } }
+.fb-dmg { position: absolute; z-index: 4; font-family: var(--pixel); font-size: .9rem; color: var(--neon-yellow); text-shadow: 2px 2px 0 var(--night); animation: rise 1s steps(8) forwards; pointer-events: none; }
+.fb-dmg.hurt { color: var(--neon-red); } @keyframes rise { to { transform: translateY(-50px); opacity: 0; } }
+.fb-flash { position: absolute; inset: 0; background: var(--neon-red); opacity: 0; pointer-events: none; z-index: 5; }
+.fb-flash.on { animation: fbflash .4s steps(2); } @keyframes fbflash { 0%,50% { opacity: .35; } 100% { opacity: 0; } }
+.fb-charge { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 3px solid var(--neon-teal); font-family: var(--pixel); font-size: .55rem; line-height: 1.5; color: var(--neon-pink); position: relative; z-index: 2; background: var(--night); }
+.fb-charge .cbar { flex: 1; height: 14px; border: 2px solid var(--neon-pink); padding: 2px; min-width: 60px; } .fb-charge .cbar i { display: block; height: 100%; width: 0; background: var(--neon-pink); }
+.fb-charge.warn .cbar i { background: var(--neon-red); } .fb-charge b { color: #fff; min-width: 2.5em; text-align: right; font-weight: 400; }
+.fb-phase { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); font-family: var(--pixel); color: var(--neon-red); font-size: .9rem; text-shadow: 3px 3px 0 var(--night); z-index: 6; white-space: nowrap; animation: fbblink .5s steps(1) 4; }
+@keyframes fbblink { 50% { opacity: 0; } }
+.fb-q { border: 3px solid #fff; border-radius: 6px; background: var(--night); padding: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 0 0 3px var(--night-3); }
+.fb-qtype { margin: 0; font-family: var(--pixel); font-size: .58rem; color: var(--neon-yellow); line-height: 1.6; }
+.fb-qtext { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.fb-opts { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.qopt { display: flex; gap: 10px; align-items: center; text-align: left; border: 3px solid var(--neon-teal); background: var(--night-2); color: #fff; border-radius: 6px; padding: 10px 12px; font-weight: 700; font-size: 1rem; box-shadow: 0 4px 0 var(--neon-teal); line-height: 1.5; }
+.qopt:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--neon-teal); }
+.qopt .k { flex: none; width: 30px; height: 30px; display: grid; place-items: center; font-family: var(--pixel); font-size: .7rem; background: var(--neon-teal); color: var(--night); }
+.qopt.right { border-color: #4CF08A; box-shadow: 0 4px 0 #4CF08A; background: #12351F; } .qopt.right .k { background: #4CF08A; }
+.qopt.wrong { border-color: var(--neon-red); box-shadow: 0 4px 0 var(--neon-red); background: #3A1420; } .qopt.wrong .k { background: var(--neon-red); }
+.qopt:disabled { cursor: default; } .qopt:disabled:not(.right):not(.wrong) { opacity: .55; }
+.fb-fb { border: 3px solid var(--neon-yellow); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: var(--night-2); }
+.fb-fb.no { border-color: var(--neon-red); } .fb-fb p { margin: 0; font-weight: 600; } .fb-fb .ans { color: #4CF08A; font-weight: 800; }
+.pbtn { font-family: var(--pixel); font-size: .7rem; line-height: 1.5; border: 3px solid var(--night); background: var(--neon-yellow); color: var(--night); padding: 14px 16px; box-shadow: 0 4px 0 var(--neon-orange); border-radius: 4px; }
+.pbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--neon-orange); }
+.pbtn.ghost { background: transparent; color: var(--neon-teal); border-color: var(--neon-teal); box-shadow: 0 4px 0 var(--neon-teal); }
+.fb-intro, .bend { margin: auto; text-align: center; display: flex; flex-direction: column; gap: 18px; align-items: center; color: #fff; padding: 24px 8px; max-width: 560px; }
+.fb-intro h2, .bend h2 { font-family: var(--pixel); font-size: clamp(1.2rem, 6vw, 2.1rem); margin: 0; line-height: 1.35; color: var(--neon-yellow); text-shadow: 4px 4px 0 var(--neon-orange); }
+.bend.lose h2 { color: var(--neon-red); text-shadow: 4px 4px 0 var(--night-3); }
+.fb-intro p, .bend p { margin: 0; font-weight: 600; }
+.fb-intro .fb-sp.foe { width: 180px; height: 240px; }
+.bend .fb-sp.me { width: 120px; height: 140px; } .bend .fb-sp.me.down { opacity: .35; filter: grayscale(1); transform: rotate(-90deg); animation: none; }
+.bend-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.blink { font-family: var(--pixel); font-size: .6rem; color: var(--neon-teal); animation: fbblink 1s steps(1) infinite; }
+@media (min-width: 760px) { .fb-opts { grid-template-columns: 1fr 1fr; } .fb-stage { height: 260px; } .fb-sp.me { width: 130px; height: 152px; } .fb-sp.foe { width: 200px; height: 245px; } .fb-hud { font-size: .7rem; } }
+
+/* ---------- prologue ---------- */
+.pro { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 820px; align-self: center; margin-block: 4px 16px; color: #fff; }
+.pro-scene { position: relative; height: clamp(260px, 48vh, 380px); border: 3px solid var(--neon-teal); border-radius: 6px; background: linear-gradient(180deg, var(--night-2) 0%, var(--night-2) 72%, var(--night-3) 72%, var(--night) 100%); box-shadow: 0 0 0 3px var(--night), 0 0 22px rgba(46,242,224,.35); overflow: hidden; }
+.pro-scene::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 2px, transparent 2px 4px); }
+.pro-title { position: absolute; left: 12px; top: 10px; font-family: var(--pixel); font-size: .6rem; color: var(--neon-yellow); z-index: 2; }
+.pro-skip { position: absolute; right: 10px; top: 8px; z-index: 3; padding: 8px 10px; font-size: .55rem; }
+.pro-me { position: absolute; left: 8%; bottom: 8%; height: 52%; width: 30%; transition: opacity .3s, filter .3s; }
+.pro-foe { position: absolute; right: 8%; bottom: 6%; height: 78%; width: 34%; transition: opacity .3s, filter .3s; }
+.pro .dim { opacity: .45; filter: grayscale(.6) brightness(.7); animation-play-state: paused; }
+.pro-foe.laugh { animation: laugh .5s steps(2) 3; }
+@keyframes laugh { 50% { transform: translateY(-6px) rotate(-2deg); } }
+.pro-box { position: relative; border: 3px solid #fff; border-radius: 6px; background: var(--night); padding: 18px 16px 30px; min-height: 130px; box-shadow: 0 0 0 3px var(--night-3); cursor: pointer; }
+.pro-who { position: absolute; top: -14px; left: 14px; font-family: var(--pixel); font-size: .6rem; line-height: 1.6; padding: 3px 8px; border: 2px solid #fff; background: var(--night-3); }
+.pro-who.boss { color: var(--neon-pink); } .pro-who.hero { color: var(--neon-teal); } .pro-who.narr { color: var(--neon-yellow); }
+.pro-text { margin: 0; font-size: 1.08rem; font-weight: 700; line-height: 1.55; }
+.pro-text b { color: var(--neon-yellow); }
+.pro-next { position: absolute; right: 12px; bottom: 8px; font-family: var(--pixel); font-size: .55rem; color: var(--neon-teal); animation: fbblink 1s steps(1) infinite; }
+@media (max-width: 520px) { .pro-text { font-size: 1rem; } .pro-me { width: 36%; } .pro-foe { width: 40%; } }
+
 footer { text-align: center; color: var(--muted); font-size: .82rem; padding: 14px 16px 20px; }
 footer a { color: var(--teal-ink); font-weight: 700; }
 canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
@@ -211,6 +297,7 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
 
 <audio id="music" loop preload="auto" src="Quiz%20Rush%203.mp3"></audio>
 <audio id="music2" loop preload="auto" src="Quiz%20Rush%202.mp3"></audio>
+<audio id="music3" loop preload="auto" src="Quiet%20Deduction.mp3"></audio>
 
 <header class="topbar">
   <a class="brand" href="https://scienceiskhool.github.io/scienceiskhool/" target="_blank" rel="noopener">
@@ -267,6 +354,22 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       <button class="btn big teal pix" type="button" id="btn-start">Start adventure ▶</button>
       <div class="best"><span>Your best on this device</span><b id="txt-best">–</b></div>
     </form>
+  </section>
+
+  <!-- PROLOGUE -->
+  <section id="scr-prologue" class="pro" hidden aria-label="Prologue">
+    <div class="pro-scene" id="pro-scene">
+      <div class="fb-stars"></div>
+      <span class="pro-title">PROLOGUE</span>
+      <button class="pbtn ghost pro-skip" type="button" id="pro-skip">SKIP ▶▶</button>
+      <div class="fb-sp me pro-me" id="pro-me"></div>
+      <div class="fb-sp foe pro-foe" id="pro-foe"></div>
+    </div>
+    <div class="pro-box" id="pro-box" role="button" tabindex="0" aria-label="Next line">
+      <span class="pro-who" id="pro-who"></span>
+      <p class="pro-text" id="pro-text" aria-live="polite"></p>
+      <span class="pro-next" id="pro-next">▼ TAP</span>
+    </div>
   </section>
 
   <!-- GAME -->
@@ -328,6 +431,45 @@ canvas#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-
       <button class="btn big alt" id="btn-home" type="button">Change settings</button>
     </div>
   </section>
+  <!-- FINAL BOSS -->
+  <section id="scr-fbintro" class="fb-intro" hidden>
+    <h2>FINAL BOSS</h2>
+    <div class="fb-sp foe" id="fi-sp"></div>
+    <p id="fi-msg"></p>
+    <span class="blink">GET READY…</span>
+    <button class="pbtn" type="button" id="fi-go">FIGHT! ▶</button>
+  </section>
+  <section id="scr-boss" class="fb" hidden>
+    <div class="fb-arena">
+      <div class="fb-stars"></div>
+      <div class="fb-hud">
+        <div class="fb-who"><span class="fb-hname">YOU</span><div class="fb-hearts" id="fb-hearts"></div></div>
+        <div class="fb-who boss-side"><span class="fb-bname"><span id="fb-name">DR. MAL PRACTICE</span> <span id="fb-left" style="color:#fff"></span></span><div class="fb-hpbar"><i id="fb-hp"></i></div></div>
+      </div>
+      <div class="fb-stage" id="fb-stage">
+        <div class="fb-sp me" id="fb-me"></div>
+        <div class="fb-bolt" id="fb-bolt"></div>
+        <div class="fb-sp foe" id="fb-foe"></div>
+        <div class="fb-flash" id="fb-flash"></div>
+      </div>
+      <div class="fb-charge" id="fb-charge"><span id="fb-charge-lbl">CHARGING</span><div class="cbar"><i id="fb-cbar"></i></div><b id="fb-secs">45</b></div>
+    </div>
+    <div class="fb-q">
+      <p class="fb-qtype" id="fb-qtype">INCOMING ATTACK</p>
+      <p class="fb-qtext" id="fb-qtext"></p>
+      <div class="fb-opts" id="fb-opts"></div>
+      <div class="fb-fb" id="fb-fb" hidden aria-live="polite"><p id="fb-fb-msg"></p><button class="pbtn" type="button" id="fb-next">NEXT ▶</button></div>
+    </div>
+  </section>
+  <section id="scr-bend" class="bend" hidden>
+    <h2 id="be-title">VICTORY!</h2>
+    <div class="fb-sp me" id="be-sp"></div>
+    <p id="be-msg"></p>
+    <div class="bend-btns">
+      <button class="pbtn ghost" type="button" id="be-retry" hidden>TRY AGAIN ↻</button>
+      <button class="pbtn" type="button" id="be-go">SEE RESULTS ▶</button>
+    </div>
+  </section>
 </main>
 
 <div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="m-title"><div class="mbox" id="mbox"></div></div>
@@ -351,6 +493,15 @@ var HERO_BACK_IMG = "hero back.png";  // back view: battles, and walking up
 var BOTTLE_IMGS = ["bottle 1.png", "bottle 2.png", "bottle 3.png", "bottle 4.png", "bottle 5.png"];
 var BOSS_IMG = "boss bottle.png";
 var BOTTLE_NAMES = ["CONEY", "ROUNDY", "STOPPY", "TUBBY", "DRIPPY"];
+// Final boss (MCQ battle after Room 4)
+var FINAL_BOSS_NAME = "DR. MAL PRACTICE";
+var FINAL_BOSS_IMG = "final boss.png";         // the evil scientist; if missing, a giant WINCHESTER is used
+var FINAL_BOSS_HURT_IMG = "final boss hurt.png"; // shown for a moment each time the hero lands a hit
+var FB_HURT_MS = 1400;
+var FB_HITS = { easy: 6, hard: 8 };            // correct answers needed (easy = Combined Science, hard = Pure Chemistry)
+var FB_HEARTS = 3;                             // wrong answers allowed
+var FB_SECS = { easy: 45, hard: 35 };          // seconds per question before the boss attacks
+var FB_CRIT_SECS = 12;                         // answer within this many seconds for a critical hit (bonus points)
 var BOSS_NAME = "WINCHESTER";
 var CLASSES = [];
 ["S1", "S2", "S3", "S4"].forEach(function (l) { ["Charity", "Courage", "Faith", "Hope", "Humility", "Integrity", "Love", "Respect", "Joy"].forEach(function (v) { CLASSES.push(l + " " + v); }); });
@@ -552,7 +703,8 @@ function ionsName(ions) { return ions.map(function (k) { return ION[k].name; }).
 var isTouch = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && matchMedia("(pointer: coarse)").matches);
 if (isTouch) document.body.classList.add("touch");
 function show(id) {
-  ["scr-start", "scr-game", "scr-result"].forEach(function (s) { $(s).hidden = s !== id; });
+  ["scr-start", "scr-prologue", "scr-game", "scr-result", "scr-fbintro", "scr-boss", "scr-bend"].forEach(function (s) { $(s).hidden = s !== id; });
+  document.body.classList.toggle("dark", id === "scr-prologue" || id === "scr-fbintro" || id === "scr-boss" || id === "scr-bend");
   $("btn-quit").hidden = id === "scr-start"; $("btn-dex").hidden = id !== "scr-game";
   window.scrollTo(0, 0);
 }
@@ -665,11 +817,12 @@ var Sound = {
   lose: function () { [392, 330, 262, 196].forEach(function (n, i) { Sound.tone(n, "square", .22, .06, i * .2); }); }
 };
 var Music = {
-  walk: $("music"), fight: $("music2"), on: load("music", true), track: "walk",
-  cur: function () { return this.track === "fight" ? this.fight : this.walk; },
+  walk: $("music"), fight: $("music2"), story: $("music3"), on: load("music", true), track: "walk",
+  cur: function () { return this.track === "fight" ? this.fight : this.track === "story" ? this.story : this.walk; },
   play: function () { if (!this.on) return; var el = this.cur(); try { el.volume = MUSIC_VOLUME; var p = el.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {} },
-  pause: function () { try { this.walk.pause(); this.fight.pause(); } catch (e) {} },
-  stop: function () { this.pause(); try { this.walk.currentTime = 0; this.fight.currentTime = 0; } catch (e) {} this.track = "walk"; },
+  pause: function () { try { this.walk.pause(); this.fight.pause(); this.story.pause(); } catch (e) {} },
+  stop: function () { this.pause(); try { this.walk.currentTime = 0; this.fight.currentTime = 0; this.story.currentTime = 0; } catch (e) {} this.track = "walk"; },
+  prologue: function () { this.stop(); this.track = "story"; this.play(); },          // Quiet Deduction for the prologue
   newRoom: function () { this.stop(); this.play(); },                                 // walking track restarts each room
   battle: function () { this.pause(); this.track = "fight"; try { this.fight.currentTime = 0; } catch (e) {} this.play(); },
   backToWalk: function () { this.pause(); this.track = "walk"; this.play(); }        // walking track resumes
@@ -680,7 +833,7 @@ function paintSound() {
 }
 $("btn-sound").addEventListener("click", function () { Sound.on = !Sound.on; store("sound", Sound.on); paintSound(); });
 $("btn-music").addEventListener("click", function () { Music.on = !Music.on; store("music", Music.on); paintSound(); if (!Music.on) Music.pause(); else if (!$("scr-game").hidden) Music.play(); });
-document.addEventListener("visibilitychange", function () { if (document.hidden) Music.pause(); else if (!$("scr-game").hidden) Music.play(); });
+document.addEventListener("visibilitychange", function () { if (document.hidden) Music.pause(); else if (!$("scr-game").hidden || !$("scr-prologue").hidden || !$("scr-boss").hidden) Music.play(); });
 paintSound();
 
 /* =================== START =================== */
@@ -707,7 +860,7 @@ function readStudent() {
 }
 $("btn-start").addEventListener("click", function () { var s = readStudent(); if (s) { Sound.tone(1, "sine", .01, .0001); startGame(s); } });
 $("form-start").addEventListener("submit", function (e) { e.preventDefault(); });
-$("btn-quit").addEventListener("click", function () { endLoop(); closeModal(); Music.stop(); Confetti.stop(); show("scr-start"); paintStart(); });
+$("btn-quit").addEventListener("click", function () { endLoop(); stopFbTimer(); clearInterval(typeT); PRO = null; closeModal(); Music.stop(); Confetti.stop(); show("scr-start"); paintStart(); });
 
 /* =================== ROOMS =================== */
 // # wall  T wall poster  D door  B bench  S sink  F fume cupboard  C cupboard  . floor  P start
@@ -747,6 +900,9 @@ function buildRooms() {
 var S = null, R = null, raf = 0, lastT = 0, modalOpen = false, mode = "walk";
 function startGame(student) {
   S = { student: student, lv: G.lv, rooms: buildRooms(), room: 0, score: 0, hp: HP_PER_ROOM, secs: 0, guesses: [], tests: 0, superTests: 0, captured: 0, won: false, dex: {} };
+  endLoop(); showPrologue();
+}
+function enterLab() {   // after the prologue
   show("scr-game"); setMode("walk"); resize();
   startRoom();
   endLoop(); lastT = performance.now(); raf = requestAnimationFrame(frame);
@@ -772,9 +928,9 @@ function startRoom() {
   paintHUD(); paintNotebook(); buildMapLayer(); Music.newRoom();
   roomIntro();
 }
-function frame(t) {
+function frame(t) {   // time counts in the rooms and the final boss
   var dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
-  if (S && !$("scr-game").hidden && !document.hidden) { S.secs += dt; if (Math.floor(S.secs * 2) !== Math.floor((S.secs - dt) * 2)) $("g-time").textContent = fmtTime(S.secs); }
+  if (S && $("scr-start").hidden && $("scr-result").hidden && !document.hidden) { S.secs += dt; if (Math.floor(S.secs * 2) !== Math.floor((S.secs - dt) * 2)) $("g-time").textContent = fmtTime(S.secs); }
   if (mode === "walk" && !modalOpen && R) { update(dt); draw(); }
   raf = requestAnimationFrame(frame);
 }
@@ -814,7 +970,7 @@ function update(dt) {
 function heroPos() { var h = R.hero; return h.moving ? { x: h.x + (h.tx - h.x) * h.p, y: h.y + (h.ty - h.y) * h.p } : { x: h.x, y: h.y }; }
 function nextRoom() {
   addScore(POINTS.room); Sound.door();
-  if (S.room === S.rooms.length - 1) { S.won = true; finish(); return; }
+  if (S.room === S.rooms.length - 1) { S.roomsDone = true; finalBossIntro(); return; }
   S.room++; startRoom();
 }
 var KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right", w: "up", s: "down", a: "left", d: "right", W: "up", S: "down", A: "left", D: "right" };
@@ -1215,6 +1371,238 @@ function openDex() {
 $("btn-dex").addEventListener("click", openDex);
 $("btn-dex2").addEventListener("click", openDex);
 
+/* =================== PROLOGUE =================== */
+// who: "boss" (Dr. Mal Practice), "hero", or "narr" (narrator). Edit freely.
+var PROLOGUE = [
+  ["narr", "Late one night, in the school's chemistry prep room…"],
+  ["boss", "Mwahaha! So, a little scientist wanders into <b>MY</b> lab."],
+  ["boss", "I am <b>DR. MAL PRACTICE</b>! And tonight, I have peeled the label off <b>every bottle</b> in this building!"],
+  ["boss", "Copper or iron? Chloride or iodide? Without labels, no one can tell! Tomorrow, every experiment will go wrong. <b>CHAOS!</b>"],
+  ["hero", "Labels or not, every ion leaves a clue. Run the right test, and the solution tells you what it is."],
+  ["boss", "Hah! Then prove it. My unknown solutions are waiting in <b>four rooms</b>: cations, anions, mixtures… and my precious <b>salts</b>."],
+  ["boss", "Identify every bottle to unlock each door. Guess wrongly and they'll splash you. You have only <b>5 HP</b> per room!"],
+  ["boss", "Clear my lab, and perhaps… <b>perhaps</b>… you'll earn the right to face me. Good luck. You'll need it!"],
+  ["hero", "Reagents ready. Goggles on. Let's <b>test 'em all!</b>"]
+];
+var PRO = null, typeT = 0;
+var PRO_NAME = { boss: FINAL_BOSS_NAME, hero: "YOU", narr: "NARRATOR" };
+function showPrologue() {
+  show("scr-prologue"); Music.prologue();
+  $("pro-me").innerHTML = ""; $("pro-me").appendChild(spriteEl(heroSprite(false)));
+  $("pro-foe").innerHTML = ""; $("pro-foe").appendChild(spriteEl(fbSprite()));
+  PRO = { i: -1, typing: false };
+  proNext();
+}
+function proNext() {
+  if (!PRO) return;
+  if (PRO.typing) { clearInterval(typeT); PRO.typing = false; $("pro-text").innerHTML = PROLOGUE[PRO.i][1]; return; }   // tap = finish the line
+  PRO.i++;
+  if (PRO.i >= PROLOGUE.length) { endPrologue(); return; }
+  var line = PROLOGUE[PRO.i], who = line[0];
+  $("pro-who").textContent = PRO_NAME[who]; $("pro-who").className = "pro-who " + who;
+  $("pro-me").classList.toggle("dim", who !== "hero"); $("pro-foe").classList.toggle("dim", who !== "boss");
+  if (who === "boss" && /Mwahaha|CHAOS|Hah/.test(line[1])) retrigger($("pro-foe"), "laugh");
+  // typewriter (tags stay whole)
+  var html = line[1], parts = html.split(/(<[^>]+>)/), out = "", pi = 0, ci = 0;
+  PRO.typing = true; $("pro-text").innerHTML = "";
+  clearInterval(typeT);
+  typeT = setInterval(function () {
+    while (pi < parts.length && (parts[pi].charAt(0) === "<" || ci >= parts[pi].length)) { if (parts[pi].charAt(0) === "<") out += parts[pi]; pi++; ci = 0; }
+    if (pi >= parts.length) { clearInterval(typeT); PRO.typing = false; $("pro-text").innerHTML = html; return; }
+    out += parts[pi].charAt(ci++);
+    $("pro-text").innerHTML = out + "</b>".repeat((out.match(/<b>/g) || []).length - (out.match(/<\/b>/g) || []).length);
+    if (ci % 3 === 0) Sound.tone(who === "boss" ? 180 : who === "hero" ? 520 : 360, "square", .03, .02);
+  }, 22);
+}
+function endPrologue() { clearInterval(typeT); PRO = null; enterLab(); }
+$("pro-box").addEventListener("click", proNext);
+$("pro-scene").addEventListener("click", function (e) { if (!e.target.closest("#pro-skip")) proNext(); });
+$("pro-skip").addEventListener("click", function () { endPrologue(); });
+document.addEventListener("keydown", function (e) {
+  if ($("scr-prologue").hidden) return;
+  if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") { e.preventDefault(); proNext(); }
+  else if (e.key === "Escape") endPrologue();
+});
+
+/* =================== FINAL BOSS (MCQ) =================== */
+// Hand-written questions: [question, correct, wrong, wrong, wrong, explanation, type, pureOnly]
+var FB_BANK = [
+  // anion tests (ion -> observation)
+  ["Dilute HNO<span class=\"sub\">3</span> is added to a solution containing carbonate ions, and the gas is bubbled into limewater. What is observed?", "Effervescence; the gas gives a white ppt in limewater", "No visible change", "Effervescence; the gas turns damp red litmus blue", "A white ppt forms in the test tube", "Carbonates fizz with acid, giving CO₂, which turns limewater milky (white ppt).", "obs"],
+  ["A solution containing chloride ions is acidified with dilute HNO<span class=\"sub\">3</span>, then AgNO<span class=\"sub\">3</span>(aq) is added. What is observed?", "A white ppt", "A yellow ppt", "No visible change", "Effervescence", "Chloride gives a white ppt of silver chloride.", "obs"],
+  ["A solution containing iodide ions is acidified with dilute HNO<span class=\"sub\">3</span>, then AgNO<span class=\"sub\">3</span>(aq) is added. What is observed?", "A yellow ppt", "A white ppt", "A brown solution", "No visible change", "Iodide gives a yellow ppt of silver iodide.", "obs"],
+  ["A solution containing sulfate ions is acidified with dilute HNO<span class=\"sub\">3</span>, then Ba(NO<span class=\"sub\">3</span>)<span class=\"sub\">2</span>(aq) is added. What is observed?", "A white ppt", "A yellow ppt", "Effervescence, then no ppt", "No visible change", "Sulfate gives a white ppt of barium sulfate.", "obs"],
+  ["NaOH(aq) and aluminium foil are added to a solution containing nitrate ions, and the mixture is warmed. What is observed?", "A gas is given off that turns damp red litmus blue", "A gas is given off that gives a white ppt in limewater", "A white ppt, soluble in excess", "No visible change", "Al reduces nitrate to ammonia, an alkaline gas.", "obs"],
+  // gas tests
+  ["A gas turns damp red litmus paper blue. Which gas is it?", "Ammonia", "Carbon dioxide", "Hydrogen", "Oxygen", "Ammonia is the alkaline gas, so it turns damp red litmus blue.", "gas"],
+  ["A gas forms a white ppt when bubbled into limewater. Which gas is it?", "Carbon dioxide", "Ammonia", "Hydrogen", "Oxygen", "CO₂ turns limewater milky (white ppt of calcium carbonate).", "gas"],
+  ["What is the test for carbon dioxide?", "Bubble it into limewater: a white ppt forms", "A lighted splint is extinguished with a 'pop'", "A glowing splint relights", "Damp red litmus paper turns blue", "Limewater is the test for CO₂. Many gases put out a splint, so a splint can't identify it.", "gas"],
+  ["What is the test for ammonia?", "Damp red litmus paper turns blue", "Limewater forms a white ppt", "A glowing splint relights", "A lighted splint 'pops'", "Ammonia is alkaline: damp red litmus turns blue.", "gas"],
+  ["What is the test for hydrogen?", "A lighted splint is extinguished with a 'pop'", "A glowing splint relights", "Limewater forms a white ppt", "Damp red litmus paper turns blue", "Hydrogen burns with a squeaky 'pop'.", "gas"],
+  ["What is the test for oxygen?", "A glowing splint relights", "A lighted splint 'pops'", "Limewater forms a white ppt", "Damp blue litmus paper turns red", "Oxygen relights a glowing splint.", "gas"],
+  ["What is the test for chlorine?", "Damp blue litmus paper turns red, then is bleached", "Damp red litmus paper turns blue", "Limewater forms a white ppt", "A glowing splint relights", "Chlorine is acidic and a bleach.", "gas"],
+  ["What is the test for sulfur dioxide?", "Acidified aqueous potassium manganate(VII) turns from purple to colourless", "Limewater forms a white ppt", "Damp red litmus paper turns blue", "A lighted splint 'pops'", "SO₂ decolourises acidified KMnO₄.", "gas"],
+  ["Which gas is given off when an ammonium salt is warmed with NaOH(aq)?", "Ammonia", "Hydrogen", "Carbon dioxide", "Nitrogen", "NH₄⁺ + OH⁻ → NH₃ + H₂O on warming.", "gas"],
+  ["Which gas is given off when dilute acid is added to a carbonate?", "Carbon dioxide", "Hydrogen", "Oxygen", "Ammonia", "Acid + carbonate → salt + water + carbon dioxide.", "gas"],
+  // method / reasoning
+  ["Why is the solution acidified with dilute HNO<span class=\"sub\">3</span> before adding AgNO<span class=\"sub\">3</span>(aq)?", "To remove carbonate ions, which would also form a ppt", "To dissolve the ppt", "To speed up the reaction", "To neutralise the silver ions", "Carbonate would give a false ppt; the acid removes it as CO₂.", "method"],
+  ["Why is dilute HNO<span class=\"sub\">3</span> used, not dilute HCl, before testing for chloride ions?", "HCl adds chloride ions, giving a false positive", "HCl reacts with AgNO₃ to give a gas", "HCl is a weak acid", "HCl dissolves the ppt", "HCl contains Cl⁻, so you'd always see a white ppt.", "method"],
+  ["Why is dilute H<span class=\"sub\">2</span>SO<span class=\"sub\">4</span> not used to acidify before testing for sulfate ions?", "It adds sulfate ions, giving a false positive", "It reacts with Ba(NO₃)₂ to give a gas", "It is too concentrated", "It dissolves the ppt", "H₂SO₄ contains SO₄²⁻, so you'd always see a white ppt.", "method"],
+  ["Which reagent tells Al<sup>3+</sup> apart from Zn<sup>2+</sup>?", "NH₃(aq), added until in excess", "NaOH(aq), added until in excess", "Dilute HNO₃", "AgNO₃(aq)", "Both ppts dissolve in excess NaOH, but only Zn(OH)₂ dissolves in excess NH₃.", "method"],
+  ["Which reagent tells Fe<sup>2+</sup> apart from Fe<sup>3+</sup>?", "NaOH(aq)", "Ba(NO₃)₂(aq)", "AgNO₃(aq)", "Dilute HNO₃", "Fe²⁺ gives a green ppt; Fe³⁺ gives a red-brown ppt.", "method"],
+  ["Which reagent tells Ca<sup>2+</sup> apart from Zn<sup>2+</sup>?", "NaOH(aq), added until in excess", "Dilute HNO₃", "AgNO₃(aq)", "Ba(NO₃)₂(aq)", "Both give a white ppt, but only zinc hydroxide dissolves in excess.", "method"],
+  ["Which reagent tells Cl<sup>−</sup> apart from I<sup>−</sup>?", "Acidified AgNO₃(aq)", "Acidified Ba(NO₃)₂(aq)", "NaOH(aq)", "Limewater", "Chloride gives a white ppt, iodide a yellow ppt.", "method"],
+  ["Which reagent tells SO<span class=\"sub\">4</span><sup>2−</sup> apart from NO<span class=\"sub\">3</span><sup>−</sup>?", "Acidified Ba(NO₃)₂(aq)", "NaOH(aq)", "NH₃(aq)", "Limewater", "Only sulfate gives a white ppt with acidified barium nitrate.", "method"],
+  ["Which reagent tells Pb<sup>2+</sup> apart from Al<sup>3+</sup>?", "KI(aq)", "NaOH(aq), added until in excess", "NH₃(aq), added until in excess", "Dilute HNO₃", "They look the same with NaOH and NH₃, but Pb²⁺ gives a yellow ppt with KI.", "method", true],
+  ["Why is the mixture warmed in the test for ammonium ions?", "To drive off ammonia gas so it can be tested", "To dissolve the ppt", "To remove carbonate ions", "To make the solution change colour", "Ammonia is released on warming, then tested with damp red litmus.", "method"],
+  ["In the test for nitrate ions, what does the aluminium foil do?", "It reduces nitrate ions to ammonia", "It acts as a catalyst", "It removes carbonate ions", "It forms a white ppt with nitrate", "Al (with NaOH) reduces NO₃⁻ to NH₃, which you can then test.", "method"],
+  ["Why must the litmus paper not touch the sides of the test tube in the ammonia test?", "NaOH(aq) on the glass would turn it blue, giving a false result", "The heat would burn the paper", "The paper would absorb the ppt", "Ammonia only rises from the middle of the tube", "NaOH is alkaline too, so touching the tube could turn the litmus blue.", "method"],
+  ["Why must the litmus paper be damp when testing for ammonia?", "Ammonia must dissolve in water to show it is alkaline", "Dry paper would catch fire", "Damp paper sticks to the tube", "Water speeds up the reaction", "A gas only changes indicator colour once it dissolves in water.", "method"],
+  ["Why is NaOH(aq) added until in excess, not just a few drops?", "To see whether the ppt dissolves in excess", "To make more ppt form", "To remove carbonate ions", "To warm the mixture", "Whether a ppt dissolves in excess separates Al³⁺/Zn²⁺/Pb²⁺ from Ca²⁺.", "method"],
+  ["A solution gives no ppt with NaOH(aq). Which cation could it contain, and what should you do next?", "NH₄⁺: warm with NaOH(aq) and test the gas with damp red litmus", "Ca²⁺: add AgNO₃(aq)", "Zn²⁺: add limewater", "Fe²⁺: add dilute HNO₃", "Ammonium gives no ppt, but releases ammonia on warming.", "method"]
+];
+function fbObsQs() {   // generated: "NaOH/NH3 added to ion X, until in excess. What is observed?"
+  var out = [], nothing = ["no ppt", "no visible change"];
+  courseIons(CATIONS).forEach(function (c) {
+    ["NaOH", "NH3"].forEach(function (r) {
+      var T = r === "NaOH" ? NAOH : NH3;
+      if (c === "NH4") {
+        if (r === "NaOH") out.push({ html: "A solution containing " + ION.NH4.html + " ions is warmed with NaOH(aq). What is observed?", opts: ["No ppt; a gas is given off that turns damp red litmus blue", "A white ppt, soluble in excess", "No visible change", "Effervescence; the gas gives a white ppt in limewater"], ex: KEY_TEST.NH4, type: "obs" });
+        return;
+      }
+      var correct = T[c].t, pool = [];
+      courseIons(CATIONS).forEach(function (o) { if (o === "NH4") return; [NAOH, NH3].forEach(function (TT) { var t = TT[o].t; if (t !== correct && pool.indexOf(t) < 0) pool.push(t); }); });
+      pool = shuffle(pool).filter(function (t) { return !(nothing.indexOf(correct) > -1 && nothing.indexOf(t) > -1); });
+      var wrong = [], usedNothing = nothing.indexOf(correct) > -1;
+      pool.forEach(function (t) { if (wrong.length >= 3) return; var isN = nothing.indexOf(t) > -1; if (isN && usedNothing) return; if (isN) usedNothing = true; wrong.push(t); });
+      out.push({ html: RG[r].html + " is added to a solution containing " + ION[c].html + " ions, until in excess. What is observed?", opts: [cap1(correct)].concat(wrong.map(cap1)), ex: KEY_TEST[c], type: "obs" });
+    });
+  });
+  if (G.lv === "hard") out.push({ html: "KI(aq) is added to a solution containing " + ION.Pb.html + " ions. What is observed?", opts: ["A yellow ppt", "A white ppt", "No visible change", "Effervescence"], ex: KEY_TEST.Pb, type: "obs" });
+  return out;
+}
+function fbQuestions() {
+  var bank = FB_BANK.filter(function (q) { return !q[7] || G.lv === "hard"; }).map(function (q) { return { html: q[0], opts: [q[1], q[2], q[3], q[4]], ex: q[5], type: q[6] }; });
+  return shuffle(bank.concat(fbObsQs()));
+}
+var FB = null, fbRaf = 0;
+var FB_TYPE = { obs: "ION → OBSERVATION", gas: "GAS TEST", method: "METHOD" };
+function fbSprite() { return IMGS[FINAL_BOSS_IMG] || bottleSprite("boss"); }
+preload(FINAL_BOSS_IMG); preload(FINAL_BOSS_HURT_IMG);
+var fbHurtT = 0;
+function fbShowHurt(stay) {   // swap in the hurt sprite, then back
+  var img = $("fb-foe").querySelector("img"); if (!img || !IMGS[FINAL_BOSS_HURT_IMG] || !IMGS[FINAL_BOSS_IMG]) return;
+  clearTimeout(fbHurtT); img.src = FINAL_BOSS_HURT_IMG;
+  if (!stay) fbHurtT = setTimeout(function () { var i = $("fb-foe").querySelector("img"); if (i) i.src = FINAL_BOSS_IMG; }, FB_HURT_MS);
+}
+function finalBossIntro() {
+  Music.stop(); Music.track = "fight"; Music.play();
+  S.fb = S.fb || { attempts: 0, correct: 0, n: 0, missed: [] };
+  show("scr-fbintro");
+  $("fi-sp").innerHTML = ""; $("fi-sp").appendChild(spriteEl(fbSprite()));
+  $("fi-msg").innerHTML = "All 4 rooms cleared! But your evil rival <b>" + FINAL_BOSS_NAME + "</b> has locked the lab exit and swapped every label in the prep room. Prove your skills: answer his questions to strike. You need " + FB_HITS[G.lv] + " hits, and you have " + FB_HEARTS + " hearts. Answer within " + FB_CRIT_SECS + " s for a critical hit!";
+}
+$("fi-go").addEventListener("click", startFinalBoss);
+function startFinalBoss() {
+  S.fb.attempts++;
+  FB = { hp: FB_HITS[G.lv], max: FB_HITS[G.lv], hearts: FB_HEARTS, n: 0, correct: 0, pool: fbQuestions(), pi: 0, phase2: false };
+  show("scr-boss"); Music.stop(); Music.track = "fight"; Music.play();
+  $("fb-name").textContent = FINAL_BOSS_NAME;
+  $("fb-me").className = "fb-sp me"; $("fb-foe").className = "fb-sp foe";
+  $("fb-me").innerHTML = ""; $("fb-me").appendChild(spriteEl(heroSprite(false)));
+  $("fb-foe").innerHTML = ""; $("fb-foe").appendChild(spriteEl(fbSprite()));
+  paintFbHud(); fbNext();
+}
+function paintFbHud(breakIdx) {
+  var h = "";
+  for (var i = 0; i < FB_HEARTS; i++) h += '<span class="' + (i >= FB.hearts ? "lost" : "") + (i === breakIdx ? " breaking" : "") + '">' + pixelSVG(HEART_MAP, { k: "#0D0B1A", R: "#FF4D5E", w: "#FFFFFF" }) + "</span>";
+  $("fb-hearts").innerHTML = h;
+  var p = Math.max(0, FB.hp) / FB.max * 100;
+  $("fb-left").textContent = "· " + Math.max(0, FB.hp) + (FB.hp === 1 ? " HIT" : " HITS") + " LEFT";
+  $("fb-hp").style.width = p + "%"; $("fb-hp").className = p <= 30 ? "low" : "";
+}
+function fbNext() {
+  if (FB.hp <= 0 || FB.hearts <= 0) return fbEnd();
+  $("fb-fb").hidden = true; $("fb-bolt").classList.remove("fly");
+  if (FB.pi >= FB.pool.length) { FB.pool = fbQuestions(); FB.pi = 0; }
+  var q = FB.pool[FB.pi++], order = shuffle([0, 1, 2, 3]);
+  FB.q = { html: q.html, ex: q.ex, type: q.type, opts: order.map(function (i) { return { html: q.opts[i], ok: i === 0 }; }) };
+  FB.n++;
+  $("fb-qtype").textContent = (FB.phase2 ? "PHASE 2 · " : "") + "ATTACK " + FB.n + " · " + FB_TYPE[q.type];
+  $("fb-qtext").innerHTML = q.html;
+  $("fb-opts").innerHTML = FB.q.opts.map(function (o, i) { return '<button type="button" class="qopt" data-i="' + i + '"><span class="k">' + "ABCD"[i] + '</span><span class="tx">' + o.html + "</span></button>"; }).join("");
+  FB.t0 = performance.now(); FB.secs = FB_SECS[G.lv]; FB.locked = false;
+  $("fb-charge-lbl").textContent = FINAL_BOSS_NAME + " IS BREWING";
+  fbTick();
+}
+function fbTick() {
+  var el = (performance.now() - FB.t0) / 1000, left = Math.max(0, FB.secs - el);
+  $("fb-cbar").style.width = Math.min(100, el / FB.secs * 100) + "%";
+  $("fb-secs").textContent = Math.ceil(left);
+  $("fb-charge").classList.toggle("warn", left <= 8);
+  if (left <= 0) { fbAnswer(-1); return; }
+  fbRaf = requestAnimationFrame(fbTick);
+}
+function stopFbTimer() { cancelAnimationFrame(fbRaf); }
+$("fb-opts").addEventListener("click", function (e) { var b = e.target.closest(".qopt"); if (b && FB && !FB.locked) fbAnswer(+b.dataset.i); });
+function fbFloat(txt, onBoss, hurt) {
+  var s = document.createElement("span"); s.className = "fb-dmg" + (hurt ? " hurt" : ""); s.textContent = txt;
+  s.style[onBoss ? "right" : "left"] = onBoss ? "12%" : "8%"; s.style.top = "30%";
+  $("fb-stage").appendChild(s); setTimeout(function () { s.remove(); }, 1100);
+}
+function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function fbAnswer(i) {
+  FB.locked = true; stopFbTimer();
+  var q = FB.q, el = (performance.now() - FB.t0) / 1000, o = i >= 0 ? q.opts[i] : null, ok = !!(o && o.ok), msg;
+  var btns = $("fb-opts").querySelectorAll(".qopt"), right = q.opts.filter(function (x) { return x.ok; })[0];
+  q.opts.forEach(function (op, j) { btns[j].disabled = true; if (op.ok) btns[j].classList.add("right"); });
+  if (o && !ok) btns[i].classList.add("wrong");
+  S.fb.n++;
+  if (ok) {
+    FB.correct++; S.fb.correct++;
+    var crit = el <= FB_CRIT_SECS;
+    FB.hp = Math.max(0, FB.hp - 1);
+    addScore((crit ? 150 : 100) + Math.round(Math.max(0, FB.secs - el)) * 5);
+    retrigger($("fb-me"), "atk-r"); retrigger($("fb-bolt"), "fly");
+    setTimeout(function () { fbShowHurt(FB.hp <= 0); retrigger($("fb-foe"), "hit"); fbFloat(crit ? "CRITICAL!" : "HIT!", true); Sound.superE(); paintFbHud(); }, 380);
+    msg = '<span class="ans">' + (crit ? "Critical hit! Speed bonus." : "Direct hit!") + "</span> " + (FB.hp > 0 ? FB.hp + " more to go. " : "") + esc(q.ex);
+  } else {
+    FB.hearts--;
+    S.fb.missed.push(stripTags(q.html).slice(0, 70));
+    retrigger($("fb-foe"), "atk-l");
+    setTimeout(function () { retrigger($("fb-me"), "hit"); retrigger($("fb-flash"), "on"); fbFloat("-1 ♥", false, true); Sound.hurt(); paintFbHud(FB.hearts); }, 300);
+    msg = (o ? "Not quite. " : FINAL_BOSS_NAME + " struck first. You ran out of time. ") + esc(q.ex) + '<br><span class="ans">Answer: ' + right.html + "</span>";
+  }
+  if (!FB.phase2 && FB.hp > 0 && FB.hp <= FB.max / 2) {
+    FB.phase2 = true;
+    setTimeout(function () { var p = document.createElement("div"); p.className = "fb-phase"; p.textContent = FINAL_BOSS_NAME + " IS ANGRY!"; $("fb-stage").appendChild(p); setTimeout(function () { p.remove(); }, 2200); }, 700);
+  }
+  var over = FB.hp <= 0 || FB.hearts <= 0;
+  $("fb-fb").hidden = false; $("fb-fb").className = "fb-fb" + (ok ? "" : " no");
+  $("fb-fb-msg").innerHTML = msg;
+  $("fb-next").textContent = over ? (FB.hp <= 0 ? "FINISH IT ▶" : "CONTINUE ▶") : "NEXT ATTACK ▶";
+  if (window.matchMedia("(max-width: 759px)").matches) setTimeout(function () { $("fb-fb").scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 200);
+}
+function stripTags(h) { var d = document.createElement("div"); d.innerHTML = h; return d.textContent.replace(/\s+/g, " ").trim(); }
+$("fb-next").addEventListener("click", function () { if (FB.hp <= 0 || FB.hearts <= 0) fbEnd(); else fbNext(); });
+function fbEnd() {
+  stopFbTimer(); Music.stop();
+  var win = FB.hp <= 0;
+  if (win) { S.won = true; addScore(1000); $("fb-foe").classList.add("dead"); } else $("fb-me").classList.add("dead");
+  setTimeout(function () {
+    show("scr-bend");
+    $("scr-bend").className = "bend" + (win ? "" : " lose");
+    $("be-title").textContent = win ? "VICTORY!" : "YOU FAINTED";
+    $("be-sp").innerHTML = ""; $("be-sp").appendChild(spriteEl(heroSprite(false))); $("be-sp").className = "fb-sp me" + (win ? "" : " down");
+    $("be-msg").textContent = win ? FINAL_BOSS_NAME + " has been defeated, and the lab is safe again! You've tested 'em all. " + FB.correct + " hits in " + FB.n + " attacks. +1000" :
+      FINAL_BOSS_NAME + " knocked you out. You landed " + FB.correct + " of " + FB.max + " hits. Try again, or see your results.";
+    $("be-retry").hidden = win;
+    if (win) { Sound.capture(); Confetti.go(); } else Sound.lose();
+  }, win ? 700 : 500);
+}
+$("be-retry").addEventListener("click", function () { Confetti.stop(); startFinalBoss(); });
+$("be-go").addEventListener("click", function () { Confetti.stop(); finish(); });
+
 /* =================== RESULTS =================== */
 function finish() {
   endLoop(); Music.stop(); setMode("walk");
@@ -1223,8 +1611,8 @@ function finish() {
   var best = load("best", {}); if (best[S.lv] == null || S.score > best[S.lv]) { best[S.lv] = S.score; store("best", best); }
   show("scr-result");
   var lvName = S.lv === "hard" ? "Pure Chemistry" : "Combined Science";
-  $("res-title").textContent = S.won ? "You tested 'em all!" : acc >= 70 ? "Sharp observations!" : "Keep testing!";
-  $("res-sub").textContent = lvName + " · " + (S.won ? "All 4 rooms cleared" : "Reached room " + (S.room + 1)) + " · " + S.tests + " tests (" + S.superTests + " super effective)";
+  $("res-title").textContent = S.won ? "You tested 'em all!" : S.roomsDone ? "So close: the final boss won this time!" : acc >= 70 ? "Sharp observations!" : "Keep testing!";
+  $("res-sub").textContent = lvName + " · " + resultTxt() + " · " + S.tests + " tests (" + S.superTests + " super effective)";
   $("res-ring").style.setProperty("--p", acc); $("res-pct").textContent = acc + "%";
   $("res-score").textContent = S.score; $("res-acc").textContent = acc + "%"; $("res-time").textContent = fmtTime(S.secs); $("res-bottles").textContent = S.captured;
   var mis = misidentified();
@@ -1235,9 +1623,12 @@ function finish() {
     return "<li>" + (g.ok ? '<span class="key">✓ ' + ionsHTML(g.actual) + "</span>" : '<span class="you">✗ ' + ionsHTML(g.guess) + '</span> → it was <span class="key">' + ionsHTML(g.actual) + "</span>") +
       ' <span class="st">Room ' + g.room + " · " + g.tests + " test" + (g.tests === 1 ? "" : "s") + "</span></li>";
   }).join("") : '<li class="st">No names given.</li>';
+  if (S.fb) $("res-review").innerHTML += '<li><b>Final boss:</b> ' + (S.won ? "defeated" : "not defeated") + " · " + S.fb.correct + "/" + S.fb.n + " questions right" +
+    (S.fb.attempts > 1 ? " · " + S.fb.attempts + " attempts" : "") + (S.fb.missed.length ? '<span class="st">Missed: ' + S.fb.missed.map(esc).join(" · ") + "</span>" : "") + "</li>";
   if (S.won || acc >= 70) Confetti.go();
   sendResults();
 }
+function resultTxt() { return S.won ? "Cleared all 4 rooms and beat the final boss" : S.roomsDone ? "Cleared all 4 rooms; lost to the final boss" : "Fainted in room " + (S.room + 1); }
 function misidentified() {
   var m = {};
   S.guesses.forEach(function (g) {
@@ -1250,7 +1641,8 @@ function buildPayload() {
   var lvName = S.lv === "hard" ? "Pure Chemistry" : "Combined Science", mis = misidentified();
   var misTxt = mis.length ? mis.map(function (m) { return ION[m.ion].txt + " x" + m.n; }).join(", ") : "none";
   var wrong = S.guesses.filter(function (g) { return !g.ok; }).map(function (g) { return ionsTxt(g.actual) + " named as " + ionsTxt(g.guess) + " (Room " + g.room + "; " + g.clue + ")"; }).join(" | ");
-  var summary = "Level: " + lvName + " | Result: " + (S.won ? "Cleared all 4 rooms" : "Fainted in room " + (S.room + 1)) + " | Accuracy: " + S.acc + "% | Bottles captured: " + S.captured +
+  var fbTxt = S.fb ? " | Final boss: " + (S.won ? "won" : "lost") + ", " + S.fb.correct + "/" + S.fb.n + " MCQs right, " + S.fb.attempts + " attempt(s)" + (S.fb.missed.length ? ", missed: " + S.fb.missed.join("; ") : "") : "";
+  var summary = "Level: " + lvName + " | Result: " + resultTxt() + fbTxt + " | Accuracy: " + S.acc + "% | Bottles captured: " + S.captured +
     " | Tests run: " + S.tests + " (" + S.superTests + " super effective) | Lab-dex: " + Object.keys(S.dex).length + " ions | Most misidentified: " + misTxt;
   return { course: SHEET_TAB, chapter: "Qualitative analysis · Gotta Test 'Em All · " + lvName, name: S.student.name, cls: S.student.cls, reg: S.student.reg,
            score: S.correct, total: S.total, wrong: wrong || "None", time: Math.round(S.secs), points: S.score, summary: summary };
@@ -1272,7 +1664,7 @@ $("btn-resend").addEventListener("click", function () {
 $("btn-again").addEventListener("click", function () { Confetti.stop(); startGame(S.student); });
 $("btn-home").addEventListener("click", function () { Confetti.stop(); show("scr-start"); paintStart(); });
 
-if (location.hash === "#debug") window.__T = { S: function () { return S; }, R: function () { return R; }, B: function () { return B; }, react: react, saltPool: saltPool, effectiveness: effectiveness, startBattle: startBattle, finish: finish, nextRoom: nextRoom };
+if (location.hash === "#debug") window.__T = { S: function () { return S; }, R: function () { return R; }, B: function () { return B; }, react: react, saltPool: saltPool, effectiveness: effectiveness, startBattle: startBattle, finish: finish, nextRoom: nextRoom, finalBossIntro: function () { finalBossIntro(); }, FB: function () { return FB; }, fbQuestions: function () { return fbQuestions(); } };
 
 /* =================== CONFETTI =================== */
 var Confetti = {
